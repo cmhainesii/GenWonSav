@@ -82,6 +82,14 @@ class Program
             Console.WriteLine($"{i}) {gameData.getPartyPokemonName(i)}");
         }
 
+        List<Pokemon> myPokemon = gameData.GetPartyPokemon();
+
+        Console.WriteLine($"List Size: {myPokemon.Count}");
+        foreach (Pokemon current in myPokemon)
+        {
+            Console.WriteLine(current.GetInfo());
+        }
+
         // Define the range for checksum calculation
         int startOffset = 0x2598;
         int endOffset = 0x3522;

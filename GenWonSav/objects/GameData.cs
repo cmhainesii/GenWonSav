@@ -1,4 +1,5 @@
 using System.Net;
+using System.Reflection.Metadata.Ecma335;
 
 public class GameData
 {
@@ -6,6 +7,7 @@ public class GameData
     private string fileName;
 
     const int partySizeOffset = 0x2F2C;
+    const int partyFirstPokemonOffset = partySizeOffset + 0x08;  
 
     public GameData(string fileName)
     {
@@ -97,5 +99,69 @@ public class GameData
         }
 
         return PokemonData.GetPokemonName(getData(partySizeOffset + num));
+    }
+
+    public List<Pokemon> GetPartyPokemon()
+    {
+        List<Pokemon> partyPokemon = new List<Pokemon>();
+        Pokemon current;
+        string name;
+        ushort level;
+        byte ad;
+        byte ss;
+        ushort attack;
+        ushort defense;
+        ushort speed;
+        ushort special;
+        IV ivs;
+        int currentPokemonOffset = partyFirstPokemonOffset;
+        
+        
+        for (ushort i = 1; i <= getPartySize(); ++i) {
+            name = getPartyPokemonName(i);
+            level = (ushort)getData(currentPokemonOffset + 0x21);
+            ad = getData(currentPokemonOffset + 0x1B);
+            ss = getData(currentPokemonOffset + 0x1C);
+            attack = (ushort)(ad >> 4);
+            defense = (ushort)(ad & 0x0F);
+            speed = (ushort)(ss >> 4);
+            special = (ushort)(ss & 0x0F);
+            ivs = new IV
+            {
+                Hp = CalculateHpIv(attack, defense, special, speed),
+                Attack = attack,
+                Defense = defense,
+                Speed = speed,
+                Special = special
+            };
+
+            current = new Pokemon(name, level, ivs);
+            partyPokemon.Add(current);
+            currentPokemonOffset += 0x2C; // increment by 44 bytes to get to next party pokemon
+        }
+
+        return partyPokemon;
+    }
+
+    private static ushort CalculateHpIv(ushort attack, ushort defense, ushort special, ushort speed)
+    {
+        ushort hpIv = 0;
+        if (attack % 2 == 1)
+        {
+            hpIv += 8;
+        }
+        if (defense % 2 == 1)
+        {
+            hpIv += 4;
+        }
+        if (speed % 2 == 1)
+        {
+            hpIv += 2;
+        }
+        if (special % 2 == 1)
+        {
+            hpIv += 1;
+        }
+        return hpIv;
     }
 }
