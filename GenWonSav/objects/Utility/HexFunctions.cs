@@ -10,4 +10,9 @@ public static class HexFunctions
 
         return hexBytes;
     }
+
+    public static ushort ConvertByteToUshort(byte hex)
+    {
+        return (ushort)hex;
+    }
 }

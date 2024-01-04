@@ -225,5 +225,10 @@ AppPackages/
 # End of core ignore list, below put you custom 'per project' settings (patterns or path)
 #####
 
-# Pokemon .sav files (save game data)
+# Pokemon .sav files (save game data) & .bak
 *.sav
+*.bak
+
+# csv and xlsx files
+*.csv
+*.xlsx
