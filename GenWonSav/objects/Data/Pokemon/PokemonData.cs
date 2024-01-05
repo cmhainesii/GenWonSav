@@ -220,7 +220,7 @@ public static class PokemonData {
             return name;
         }
         else {
-            throw new KeyNotFoundException($"Hex value '{hexCode}' not found.");
+            throw new KeyNotFoundException($"Hex value!! '{(ushort)hexCode}' not found.");
         }
     }
 

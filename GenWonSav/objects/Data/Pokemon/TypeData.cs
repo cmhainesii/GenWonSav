@@ -38,7 +38,7 @@ public static class TypeData
         }
         else
         {
-            throw new KeyNotFoundException($"Unable to find '{hexValue}'.");
+            throw new KeyNotFoundException($"Unablez to find '{hexValue}'.");
         }
     }
 

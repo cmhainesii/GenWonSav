@@ -6,15 +6,15 @@ class Program
 {
     static void Main()
     {
-        GameData xferData;
+        //GameData xferData;
         GameData gameData;
         try
         {
-            // Specify the file path
-            string filePath = "rat_race_final.sav";
-            xferData = new GameData(filePath);
+            // // Specify the file path
+            // string filePath = "rat_race_final.sav";
+            // xferData = new GameData(filePath);
 
-            filePath = "data.sav";
+            string filePath = "data.sav";
             gameData = new GameData(filePath);
         }
         catch (Exception ex)
@@ -33,32 +33,33 @@ class Program
 
 
 
+        // Xfer pokemon from another save code
 
-        try
-        {
-            int start = GameData.partyFirstPokemonOffset + (3 * GameData.partyNextPokemonOffset);
-            int end = start + 43;
-            byte[] pokemonData = xferData.GetData(start, end);
+        // try
+        // {
+        //     int start = GameData.partyFirstPokemonOffset + (3 * GameData.partyNextPokemonOffset);
+        //     int end = start + 43;
+        //     byte[] pokemonData = xferData.GetData(start, end);
 
-            start = GameData.partyFirstOtNameOffset;
-            end = start + 0x0A;
-            byte[] pokemonOtName = gameData.GetData(start, end);
+        //     start = GameData.partyFirstOtNameOffset;
+        //     end = start + 0x0A;
+        //     byte[] pokemonOtName = gameData.GetData(start, end);
 
-            start = GameData.partyFirstNickOffset + (GameData.otNickNextNameOffset * 3);
-            end = start + 0x0A;
-            byte[] pokemonName = xferData.GetData(start, end);
+        //     start = GameData.partyFirstNickOffset + (GameData.otNickNextNameOffset * 3);
+        //     end = start + 0x0A;
+        //     byte[] pokemonName = xferData.GetData(start, end);
 
-            start = GameData.partyFirstPokemonOffset + 0x0C;
-            end = start + 0x01;
-            byte[] otId = gameData.GetData(start, end);
+        //     start = GameData.partyFirstPokemonOffset + 0x0C;
+        //     end = start + 0x01;
+        //     byte[] otId = gameData.GetData(start, end);
 
-            PokemonHexData ratData = new PokemonHexData(pokemonData, pokemonOtName, pokemonName, otId);
-            gameData.AddPartyPokemon(ratData);
-        }
-        catch (ArgumentException ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
+        //     PokemonHexData ratData = new PokemonHexData(pokemonData, pokemonOtName, pokemonName, otId);
+        //     gameData.AddPartyPokemon(ratData);
+        // }
+        // catch (ArgumentException ex)
+        // {
+        //     Console.WriteLine(ex.Message);
+        // }
 
 
 
@@ -198,6 +199,31 @@ class Program
         {
             Console.WriteLine(pokemon.GetInfo());
         }
+
+        List<Pokemon> boxPokemon = new List<Pokemon>();
+        List<Pokemon> currentBox;
+
+        for (ushort i = 1; i <= 6; ++i)
+        {
+            currentBox = gameData.GetBoxPokemon(i);
+            boxPokemon.AddRange(currentBox);
+        }
+
+        // int lineNumber = 0;
+        // foreach (Pokemon current in boxPokemon)
+        // {
+        //     Console.WriteLine($"#{++lineNumber}");
+        //     Console.WriteLine(current.GetInfo());
+        // }
+
+        GameData.WriteCSV("blue_box.csv", boxPokemon);
+
+
+        List<Item> items = gameData.GetBagItems();
+        foreach (Item item in items)
+        {
+            Console.WriteLine(item.GetInfo());
+        }    
 
 
     }

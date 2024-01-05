@@ -26,6 +26,9 @@ public class GameData
     internal const int partyNextPokemonOffset = 0x2C;
     internal const int partyOtIdOffset = 0x0C;
 
+    internal const int bagSizeOffset = 0x25C9;
+    internal const int bagFirstItemOffset = bagSizeOffset + 0x01;
+
     public GameData(string fileName)
     {
         fileData = File.ReadAllBytes(fileName);
@@ -180,18 +183,15 @@ public class GameData
         string nickname;
         string type;
         string type2;
-        Console.WriteLine($"Set to: {(GetData(currentlySetBoxOffset) & 0x7F)}");
         if ((GetData(currentlySetBoxOffset) & 0x7F) + 1 == boxNumber)
         {
             currentBoxOffset = currentBoxDataBegin;
             currentPokemonOffset = currentBoxOffset + boxSizeToFirstPokemonOffset;
-
         }
         else
         {
             currentBoxOffset = boxOneBegin + ((boxNumber - 1) * nextBoxOffset);
             currentPokemonOffset = currentBoxOffset + boxSizeToFirstPokemonOffset;
-            Console.WriteLine($"CPO: {currentPokemonOffset.ToString("X2")}.");
         }
 
         switch (boxNumber)
@@ -205,6 +205,7 @@ public class GameData
                 for (ushort i = 1; i <= GetBoxSize(boxNumber); ++i)
                 {
 
+                    
                     name = PokemonData.GetPokemonName(GetData(currentPokemonOffset));
                     level = (ushort)GetData(currentPokemonOffset + 0x03);
                     ad = GetData(currentPokemonOffset + 0x1B);
@@ -226,7 +227,7 @@ public class GameData
                     };
 
                     // Get OT name
-
+                    
                     otNameOffset = currentBoxOffset + boxOtNameOffset + (otNickNextNameOffset * (i - 1));
                     otName = GetEncodedText(otNameOffset, 0x50, 11);
 
@@ -409,5 +410,40 @@ public class GameData
 
         return sb.ToString();
 
+    }
+
+    public List<Item> GetBagItems()
+    {
+        List<Item> items = new List<Item>();
+        try
+        {
+            ushort bagQty = (ushort)GetData(bagSizeOffset);
+            int currentOffset = bagFirstItemOffset;
+            byte itemHexCode;
+            byte itemQty;
+            string itemName;
+            Item currentItem;
+            
+            for (ushort i = 1; i <= 20; i++)
+            {
+                if (GetData(currentOffset) == 0xFF)
+                {
+                    break;
+                }
+                itemHexCode = GetData(currentOffset);
+                itemQty = GetData(currentOffset + 0x01);
+                itemName = ItemData.GetName(itemHexCode);
+                currentItem = new Item(itemHexCode, itemQty, itemName);
+                items.Add(currentItem);
+                currentOffset += 0x02;
+            }
+
+            return items;
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+        return items;
     }
 }
