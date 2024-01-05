@@ -234,11 +234,5 @@ class Program
         {
             Console.WriteLine($"Error: {ex.Message}");
         }
-
-
     }
-
-
-
-
 }

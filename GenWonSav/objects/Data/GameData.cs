@@ -446,4 +446,29 @@ public class GameData
         }
         return items;
     }
+
+    public void AddItemToBag(Item item)
+    {
+        ushort bagSize = (ushort)GetData(bagSizeOffset);
+
+        if (bagSize >= 20)
+        {
+            Console.WriteLine("Unable to add item to bag. Bag is full. Aborting.");
+            return;
+        }
+
+        if (item.quantity <= 0 || item.quantity > 255)
+        {
+            Console.WriteLine("Unable to add to bag. Invalid quantity. (Range 1 - 255) Aborting.");
+            return;
+        }
+
+        // Increment bag size in save data
+        PatchHexByte((byte)(bagSize + 1), bagSizeOffset);
+
+        int offset = bagFirstItemOffset + (0x02 * bagSize);
+        byte[] hexBytes = { item.hexCode, item.getQuantityHex(), 0xFF};
+        PatchHexBytes(hexBytes, offset);
+        
+    }
 }

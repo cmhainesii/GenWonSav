@@ -8,7 +8,7 @@ public static class ItemData
         AddMapping(0x01, "Master Ball");
         AddMapping(0x02, "Ultra Ball");
         AddMapping(0x03, "Great Ball");
-        AddMapping(0x04, "Pokémon Ball");
+        AddMapping(0x04, "Poké Ball");
         AddMapping(0x05, "Town Map");
         AddMapping(0x06, "Bicycle");
         AddMapping(0x07, "?????");
