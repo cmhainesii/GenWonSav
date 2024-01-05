@@ -115,35 +115,7 @@ class Program
         // gameData.PatchHexBytes(newItem, bagOffset + 3);
         // gameData.PatchHexByte(0x04, bagOffset);
 
-        // Define the range for checksum calculation
-        int startOffset = 0x2598;
-        int endOffset = 0x3522;
-
-        // Calculate the checksum
-        try
-        {
-            int checksum = gameData.CalculateChecksum(startOffset, endOffset);
-            // Get the least significant 2 hex digits of the result
-            string hexChecksum = (checksum & 0xFF).ToString("X2");
-
-            // Convert the hex string to bytes
-            byte[] checksumBytes = new byte[] { Convert.ToByte(hexChecksum, 16) };
-
-            int checksumOffset = 0x3523;
-
-            //fileData[checksumOffset] = checksumBytes[0];
-            gameData.PatchHexByte(checksumBytes[0], checksumOffset);
-
-            //File.WriteAllBytes(filePath, fileData);
-            gameData.WriteToFile();
-
-            // Print the hex checksum to the console
-            Console.WriteLine("Checksum: 0x" + hexChecksum);
-        }
-        catch (ArgumentException ex)
-        {
-            Console.WriteLine($"Error: {ex.Message}");
-        }
+        
 
 
 
@@ -223,7 +195,45 @@ class Program
         foreach (Item item in items)
         {
             Console.WriteLine(item.GetInfo());
-        }    
+        }
+
+
+
+        Item newItem = new Item(ItemData.GetHexCode("Great Ball"), (ushort) 20, "Great Ball");
+        gameData.AddItemToBag(newItem);
+
+        Item anotherItem = new Item(ItemData.GetHexCode("TM07"), (ushort)255, "TM07");
+        gameData.AddItemToBag(anotherItem);
+
+        // Define the range for checksum calculation
+        int startOffset = 0x2598;
+        int endOffset = 0x3522;
+
+        // Calculate the checksum
+        try
+        {
+            int checksum = gameData.CalculateChecksum(startOffset, endOffset);
+            // Get the least significant 2 hex digits of the result
+            string hexChecksum = (checksum & 0xFF).ToString("X2");
+
+            // Convert the hex string to bytes
+            byte[] checksumBytes = new byte[] { Convert.ToByte(hexChecksum, 16) };
+
+            int checksumOffset = 0x3523;
+
+            //fileData[checksumOffset] = checksumBytes[0];
+            gameData.PatchHexByte(checksumBytes[0], checksumOffset);
+
+            //File.WriteAllBytes(filePath, fileData);
+            gameData.WriteToFile();
+
+            // Print the hex checksum to the console
+            Console.WriteLine("Checksum: 0x" + hexChecksum);
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
 
 
     }
