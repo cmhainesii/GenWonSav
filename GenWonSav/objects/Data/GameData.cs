@@ -29,6 +29,19 @@ public class GameData
     internal const int bagSizeOffset = 0x25C9;
     internal const int bagFirstItemOffset = bagSizeOffset + 0x01;
 
+    internal const int ownedOffset = 0x25A3;
+
+    internal const int seenOffset = 0x25B6;
+
+    internal const int ownedSeenSize = 0x13;
+
+    internal const int trainerNameOffset = 0x2598;
+    internal const int trainerNameSize = 0x0B;
+
+    internal const int rivalNameOffset = 0x25F6;
+
+    internal const int badgesOffset = 0x2602;
+
     public GameData(string fileName)
     {
         fileData = File.ReadAllBytes(fileName);
@@ -99,6 +112,33 @@ public class GameData
         File.WriteAllBytes(fileName, fileData);
     }
 
+    public string GetTrainerName()
+    {
+        return GetEncodedText(trainerNameOffset, 0x50, 11);
+    }
+
+    public string GetRivalName()
+    {
+        return GetEncodedText(rivalNameOffset, 0x50, 11);
+    }
+
+    public void changeRivalName(string name)
+    {
+        if (name.Length > 7 || name.Length <= 0)
+        {
+            Console.WriteLine("Error: Name must be between 1 and 7 characters.");
+            return;
+        }
+
+        byte[] encodedName = EncodeText(name, 0x50);
+        if (encodedName.Length > 11)
+        {
+            Console.WriteLine("Error: Encoded name text too long.");
+            return;
+        }
+        PatchHexBytes(encodedName, rivalNameOffset);
+    }
+
     public void ChangePartyPokemonOtId(int newID)
     {
         int idOffset = 0x2605;
@@ -121,6 +161,95 @@ public class GameData
             PatchHexBytes(newId, currentOffset);
             currentOffset += 0x2C;
         }
+    }
+
+    public Badges GetBadges()
+    {
+        bool boulder = false;
+        bool cascade = false;
+        bool thunder = false;
+        bool rainbow = false;
+        bool soul = false;
+        bool marsh = false;
+        bool volcano = false;
+        bool earth = false;
+
+        byte data = fileData[badgesOffset];
+        if ((data & (1 << 0)) != 0)
+        {
+            boulder = true;
+        }
+        if ((data & (1 << 1)) != 0)
+        {
+            cascade = true;
+        }
+        if ((data & (1 << 2)) != 0)
+        {
+            thunder = true;
+        }
+        if ((data & (1 << 3)) != 0)
+        {
+            rainbow = true;
+        }
+        if ((data & (1 << 4)) != 0)
+        {
+            soul = true;
+        }
+        if ((data & (1 << 5)) != 0)
+        {
+            marsh = true;
+        }
+        if ((data & (1 << 6)) != 0)
+        {
+            volcano = true;
+        }
+        if ((data & (1 << 7)) != 0)
+        {
+            earth = true;
+        }
+        Badges badges = new Badges(boulder, cascade, thunder, rainbow,
+            soul, marsh, volcano, earth);
+
+        return badges;
+
+
+    }
+
+    public ushort GetNumberOwned()
+    {
+        ushort sum = 0;
+        for (int i = ownedOffset; i <  ownedOffset + ownedSeenSize; ++i)
+        {
+            sum += getSumBits(fileData[i]);
+        }
+
+        return sum;
+    }
+
+    public ushort GetNumberSeen()
+    {
+        ushort sum = 0;
+        for (int i = seenOffset; i < seenOffset + ownedSeenSize; ++i)
+        {
+            sum += getSumBits(fileData[i]);
+        }
+
+        return sum;
+    }
+
+    private ushort getSumBits(byte input)
+    {
+        ushort count = 0;
+
+        for (int i = 0; i < 8; ++i)
+        {
+            if((input & (1 << i)) != 0)
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     public ushort GetPartySize()
@@ -386,6 +515,19 @@ public class GameData
         Console.WriteLine("CSV File created.");
     }
 
+
+    public static byte[] EncodeText(string text, byte terminator)
+    {
+        byte[] encodedText = new byte[text.Length + 1];
+        for(int i = 0; i < text.Length; ++i)
+        {
+            encodedText[i] = TextEncoding.GetHexValue(text[i]);
+        }
+
+        encodedText[text.Length] = terminator;
+
+        return encodedText;
+    }
     public string GetEncodedText(int startOffset, int delimiter, int max)
     {
         StringBuilder sb = new StringBuilder();

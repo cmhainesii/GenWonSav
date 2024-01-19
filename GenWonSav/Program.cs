@@ -188,7 +188,8 @@ class Program
         //     Console.WriteLine(current.GetInfo());
         // }
 
-        GameData.WriteCSV("blue_box.csv", boxPokemon);
+        GameData.WriteCSV("red_box.csv", boxPokemon);
+        GameData.WriteCSV("red_party.csv", partyPokemon);
 
 
         List<Item> items = gameData.GetBagItems();
@@ -197,13 +198,15 @@ class Program
             Console.WriteLine(item.GetInfo());
         }
 
+        gameData.changeRivalName("Dickwad");
 
 
-        Item newItem = new Item(ItemData.GetHexCode("Great Ball"), (ushort) 20, "Great Ball");
-        gameData.AddItemToBag(newItem);
 
-        Item anotherItem = new Item(ItemData.GetHexCode("TM07"), (ushort)255, "TM07");
-        gameData.AddItemToBag(anotherItem);
+        // Item newItem = new Item(ItemData.GetHexCode("Great Ball"), (ushort) 20, "Great Ball");
+        // gameData.AddItemToBag(newItem);
+
+        // Item anotherItem = new Item(ItemData.GetHexCode("TM07"), (ushort)255, "TM07");
+        // gameData.AddItemToBag(anotherItem);
 
         // Define the range for checksum calculation
         int startOffset = 0x2598;
@@ -234,5 +237,22 @@ class Program
         {
             Console.WriteLine($"Error: {ex.Message}");
         }
+
+        Console.WriteLine($"Pokemon Owned: {gameData.GetNumberOwned()}");
+        Console.WriteLine($"Pokemon Seen: {gameData.GetNumberSeen()}");
+        Console.WriteLine($"Trainer Name: {gameData.GetTrainerName()}");
+        Console.WriteLine($"Rival Name: {gameData.GetRivalName()}");
+        byte[] encodedTextTexst = GameData.EncodeText("BLUE", 0x50);
+
+        foreach (byte character in encodedTextTexst)
+        {
+            Console.Write($"{character:X2}");
+        }
+        
+        Console.WriteLine();
+
+
+        Badges badges = gameData.GetBadges();
+        Console.WriteLine(badges.getBadgesInfo());
     }
 }
