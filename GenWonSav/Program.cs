@@ -208,35 +208,7 @@ class Program
         // Item anotherItem = new Item(ItemData.GetHexCode("TM07"), (ushort)255, "TM07");
         // gameData.AddItemToBag(anotherItem);
 
-        // Define the range for checksum calculation
-        int startOffset = 0x2598;
-        int endOffset = 0x3522;
-
-        // Calculate the checksum
-        try
-        {
-            int checksum = gameData.CalculateChecksum(startOffset, endOffset);
-            // Get the least significant 2 hex digits of the result
-            string hexChecksum = (checksum & 0xFF).ToString("X2");
-
-            // Convert the hex string to bytes
-            byte[] checksumBytes = new byte[] { Convert.ToByte(hexChecksum, 16) };
-
-            int checksumOffset = 0x3523;
-
-            //fileData[checksumOffset] = checksumBytes[0];
-            gameData.PatchHexByte(checksumBytes[0], checksumOffset);
-
-            //File.WriteAllBytes(filePath, fileData);
-            gameData.WriteToFile();
-
-            // Print the hex checksum to the console
-            Console.WriteLine("Checksum: 0x" + hexChecksum);
-        }
-        catch (ArgumentException ex)
-        {
-            Console.WriteLine($"Error: {ex.Message}");
-        }
+        
 
         Console.WriteLine($"Pokemon Owned: {gameData.GetNumberOwned()}");
         Console.WriteLine($"Pokemon Seen: {gameData.GetNumberSeen()}");
@@ -254,5 +226,46 @@ class Program
 
         Badges badges = gameData.GetBadges();
         Console.WriteLine(badges.getBadgesInfo());
+
+        uint money = gameData.GetMoney();
+        Console.WriteLine($"Money from data: ${money}");
+        byte[] moneyBytes = HexFunctions.ConvertIntToByteArray(money);
+        foreach (byte current in moneyBytes)
+        {
+            Console.Write($"0x{current:X2} ");
+        }
+        Console.WriteLine();
+
+        moneyBytes = HexFunctions.ConvertIntToByteArray(999999);
+        foreach (byte current in moneyBytes)
+        {
+            Console.Write($"0x{current:X2} ");
+        }
+        Console.WriteLine();
+
+        // Test changing player's money using new utilities
+        gameData.PatchHexBytes(moneyBytes, GameData.moneyOffset);
+
+        // Calculate the checksum
+        try
+        {
+            int checksum = gameData.CalculateChecksum(GameData.checksumStartOffset, GameData.checksumEndOffset);
+            // Get the least significant 2 hex digits of the result
+            string hexChecksum = (checksum & 0xFF).ToString("X2");
+
+            // Convert the hex string to bytes
+            byte[] checksumBytes = new byte[] { Convert.ToByte(hexChecksum, 16) };
+
+            gameData.PatchHexByte(checksumBytes[0], GameData.checksumLocationOffset);
+
+            gameData.WriteToFile();
+
+            // Print the hex checksum to the console
+            Console.WriteLine("Checksum: 0x" + hexChecksum);
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
     }
 }

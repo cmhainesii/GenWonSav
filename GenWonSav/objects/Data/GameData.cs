@@ -42,6 +42,11 @@ public class GameData
 
     internal const int badgesOffset = 0x2602;
 
+    internal const int moneyOffset = 0x25F3;
+    internal const int checksumStartOffset = 0x2598;
+    internal const int  checksumEndOffset = 0x3522;
+    internal const int checksumLocationOffset = 0x3523;
+
     public GameData(string fileName)
     {
         fileData = File.ReadAllBytes(fileName);
@@ -214,6 +219,35 @@ public class GameData
 
 
     }
+
+    public uint GetMoney()
+    {
+        uint result = 0;     
+        int high, low;   
+        int count = 0;
+        byte[] money = GetData(moneyOffset, moneyOffset + 0x02);    
+        byte current = money[count++];
+
+        high = current >> 4;
+        low = current & 0xF;
+        result += (uint)(100000 * high);
+        result += (uint)(10000 * low);
+
+        current = money[count++];
+        high = current >> 4;
+        low = current & 0xF;
+        result += (uint)(1000 * high);
+        result += (uint)(100 * low);
+
+        current = money[count];
+        high = current >> 4;
+        low = current & 0xF;
+        result += (uint)(10 * high);
+        result += (uint)(1 * low);
+
+        return result;
+    }
+
 
     public ushort GetNumberOwned()
     {
