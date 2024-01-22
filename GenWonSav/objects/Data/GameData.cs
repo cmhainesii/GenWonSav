@@ -43,6 +43,7 @@ public class GameData
     internal const int badgesOffset = 0x2602;
 
     internal const int moneyOffset = 0x25F3;
+    internal const int moneyOffsetEnd = moneyOffset + 0x02;
     internal const int checksumStartOffset = 0x2598;
     internal const int  checksumEndOffset = 0x3522;
     internal const int checksumLocationOffset = 0x3523;
@@ -246,6 +247,18 @@ public class GameData
         result += (uint)(1 * low);
 
         return result;
+    }
+
+    private int DecodeBCD(byte bcdByte)
+    {
+        return (bcdByte >> 4) * 10 + (bcdByte & 0xF);
+    }
+
+    public uint TestGetMoney()
+    {
+        byte[] money = GetData(moneyOffset, moneyOffsetEnd);
+
+        return (uint)(DecodeBCD(money[0]) * 10000 + DecodeBCD(money[1]) * 100 + DecodeBCD(money[2]) * 1);
     }
 
 
@@ -646,5 +659,45 @@ public class GameData
         byte[] hexBytes = { item.hexCode, item.getQuantityHex(), 0xFF};
         PatchHexBytes(hexBytes, offset);
         
+    }
+
+
+    public string GenerateGameReport()
+    {
+        StringBuilder sb = new StringBuilder();
+
+
+        sb.AppendLine("Game Summary Report");
+        sb.AppendLine();
+        sb.AppendLine("--------------------");
+        sb.AppendLine();
+        sb.AppendLine();
+        //sb.AppendLine($"Trainer Name: {GetTrainerName()}");
+        sb.AppendLine($"{"Trainer Name: ",16} {GetTrainerName(),7}");
+        //sb.AppendLine($"{"Money: ",16} {"$" + GetMoney().ToString("N0"),7}");
+        sb.AppendLine();
+        //sb.AppendLine($"Pokemon Seen:".ToString("0,3") + $"{GetNumberSeen():D3,-10}");
+        //sb.AppendLine(String.Format("{0,-18} {1,3}", "Pokemon Seen: ", GetNumberOwned()));
+        sb.AppendLine($"{"Pokemon Seen: ",16} {GetNumberSeen(),7:D3}");
+        sb.AppendLine($"{"Pokemon Caught: ",16} {GetNumberOwned(),7:D3}");
+        //sb.AppendLine($"Pokemon Caught: {GetNumberOwned():D3}");
+        sb.AppendLine();
+        
+        Badges badges = GetBadges();
+
+        sb.AppendLine(badges.getBadgesInfo());
+
+        sb.AppendLine("Party Info:");
+        sb.AppendLine();
+
+        List<Pokemon> myParty = GetPartyPokemon();
+        foreach(Pokemon current in myParty)
+        {
+            sb.AppendLine(current.GetInfo());
+        }
+
+        
+
+        return sb.ToString();
     }
 }

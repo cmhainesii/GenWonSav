@@ -243,9 +243,6 @@ class Program
         }
         Console.WriteLine();
 
-        // Test changing player's money using new utilities
-        gameData.PatchHexBytes(moneyBytes, GameData.moneyOffset);
-
         // Calculate the checksum
         try
         {
@@ -267,5 +264,13 @@ class Program
         {
             Console.WriteLine($"Error: {ex.Message}");
         }
+
+        uint testMoney = gameData.TestGetMoney();
+        Console.WriteLine($"TestMoney: ₽{testMoney:N0}");
+        Console.WriteLine();
+        Console.WriteLine(gameData.GenerateGameReport());
+
+        const string gameReportFilename = "GameSaveReport.txt";
+        File.WriteAllText(gameReportFilename, gameData.GenerateGameReport());
     }
 }
