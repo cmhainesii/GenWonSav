@@ -68,8 +68,13 @@ public class Pokemon
         return sb.ToString();
     }
 
-    
-    
-    
+    public override string ToString()
+    {
+        return _name;
+    }
+
+
+
+
 
 }
