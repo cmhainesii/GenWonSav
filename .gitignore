@@ -232,3 +232,4 @@ AppPackages/
 # csv and xlsx files
 *.csv
 *.xlsx
+GenWonSav/GameSaveReport.txt

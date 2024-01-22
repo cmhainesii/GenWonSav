@@ -672,15 +672,11 @@ public class GameData
         sb.AppendLine("--------------------");
         sb.AppendLine();
         sb.AppendLine();
-        //sb.AppendLine($"Trainer Name: {GetTrainerName()}");
         sb.AppendLine($"{"Trainer Name: ",16} {GetTrainerName(),7}");
-        //sb.AppendLine($"{"Money: ",16} {"$" + GetMoney().ToString("N0"),7}");
         sb.AppendLine();
-        //sb.AppendLine($"Pokemon Seen:".ToString("0,3") + $"{GetNumberSeen():D3,-10}");
-        //sb.AppendLine(String.Format("{0,-18} {1,3}", "Pokemon Seen: ", GetNumberOwned()));
         sb.AppendLine($"{"Pokemon Seen: ",16} {GetNumberSeen(),7:D3}");
         sb.AppendLine($"{"Pokemon Caught: ",16} {GetNumberOwned(),7:D3}");
-        //sb.AppendLine($"Pokemon Caught: {GetNumberOwned():D3}");
+
         sb.AppendLine();
         
         Badges badges = GetBadges();
@@ -691,8 +687,11 @@ public class GameData
         sb.AppendLine();
 
         List<Pokemon> myParty = GetPartyPokemon();
+        ushort count = 0;
         foreach(Pokemon current in myParty)
         {
+            sb.AppendLine($"Party Pokemon #{++count}:");
+            sb.AppendLine();
             sb.AppendLine(current.GetInfo());
         }
 
