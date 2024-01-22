@@ -48,10 +48,13 @@ public class GameData
     internal const int  checksumEndOffset = 0x3522;
     internal const int checksumLocationOffset = 0x3523;
 
+    public Party partyPokemon;
+
     public GameData(string fileName)
     {
         fileData = File.ReadAllBytes(fileName);
         this.fileName = fileName;
+        partyPokemon = new Party(this);
     }
 
     public void PatchHexBytes(byte[] newData, int startOffset)
@@ -686,17 +689,15 @@ public class GameData
         sb.AppendLine("Party Info:");
         sb.AppendLine();
 
-        List<Pokemon> myParty = GetPartyPokemon();
-        ushort count = 0;
-        foreach(Pokemon current in myParty)
-        {
-            sb.AppendLine($"Party Pokemon #{++count}:");
-            sb.AppendLine();
-            sb.AppendLine(current.GetInfo());
-        }
+        sb.AppendLine(partyPokemon.GetInfo());
 
         
 
         return sb.ToString();
+    }
+
+    public Party GetParty()
+    {
+        return partyPokemon;
     }
 }
