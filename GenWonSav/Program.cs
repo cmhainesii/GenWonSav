@@ -172,14 +172,8 @@ class Program
             Console.WriteLine(pokemon.GetInfo());
         }
 
-        List<Pokemon> boxPokemon = new List<Pokemon>();
-        List<Pokemon> currentBox;
 
-        for (ushort i = 1; i <= 6; ++i)
-        {
-            currentBox = gameData.GetBoxPokemon(i);
-            boxPokemon.AddRange(currentBox);
-        }
+
 
         // int lineNumber = 0;
         // foreach (Pokemon current in boxPokemon)
@@ -188,15 +182,8 @@ class Program
         //     Console.WriteLine(current.GetInfo());
         // }
 
-        GameData.WriteCSV("red_box.csv", boxPokemon);
+        //GameData.WriteCSV("red_box.csv", boxPokemon);
         GameData.WriteCSV("red_party.csv", partyPokemon);
-
-
-        List<Item> items = gameData.GetBagItems();
-        foreach (Item item in items)
-        {
-            Console.WriteLine(item.GetInfo());
-        }
 
         gameData.changeRivalName("Dickwad");
 
@@ -272,5 +259,11 @@ class Program
 
         const string gameReportFilename = "GameSaveReport.txt";
         File.WriteAllText(gameReportFilename, gameData.GenerateGameReport());
+
+        //List<Pokemon> boxSeven = gameData.GetBoxPokemon(7);
+
+
+        Console.WriteLine($"{gameData.pcPokemon.GetPcPokemonInfo()}");
+        Console.WriteLine($"Total Pokemon Stored in PC: {gameData.pcPokemon.count:D3}");
     }
 }

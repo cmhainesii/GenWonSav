@@ -8,6 +8,8 @@ public class GameData
 
     public const int partySizeOffset = 0x2F2C;
     public const int boxOneBegin = 0x4000;
+
+    internal const int boxSevenBegin = 0x6000;
     public const int boxSizeToFirstPokemonOffset = 0x16;
     public const int boxOneFirstPokemon = boxOneBegin + boxSizeToFirstPokemonOffset;
     public const int nextBoxOffset = 0x462;
@@ -49,12 +51,16 @@ public class GameData
     internal const int checksumLocationOffset = 0x3523;
 
     public Party partyPokemon;
+    public PokemonPC pcPokemon;
+    public List<Item> bagItems {get;}
 
     public GameData(string fileName)
     {
         fileData = File.ReadAllBytes(fileName);
         this.fileName = fileName;
         partyPokemon = new Party(this);
+        pcPokemon = new PokemonPC(this);
+        this.bagItems = GetBagItems();
     }
 
     public void PatchHexBytes(byte[] newData, int startOffset)
@@ -317,7 +323,14 @@ public class GameData
         }
         else
         {
-            return (ushort)GetData(boxOneBegin + ((boxNum - 1) * nextBoxOffset));
+            if (boxNum < 7)
+            {
+                return (ushort)GetData(boxOneBegin + ((boxNum - 1) * nextBoxOffset));
+            }
+            else
+            {
+                return (ushort)GetData(boxSevenBegin + ((boxNum - 7) * nextBoxOffset));
+            }
         }
     }
 
@@ -348,6 +361,10 @@ public class GameData
     public List<Pokemon> GetBoxPokemon(ushort boxNumber)
     {
         List<Pokemon> boxPokemon = new List<Pokemon>();
+        if (boxNumber < 1 || boxNumber > 12) {
+            throw new ArgumentException("Error: Invalid box number. Aborting.");
+        }
+
         Pokemon current;
         string name;
         ushort level;
@@ -369,57 +386,61 @@ public class GameData
         }
         else
         {
-            currentBoxOffset = boxOneBegin + ((boxNumber - 1) * nextBoxOffset);
+            if (boxNumber < 7)
+            {
+                currentBoxOffset = boxOneBegin + ((boxNumber - 1) * nextBoxOffset);
+            }
+            else
+            {
+                currentBoxOffset = boxSevenBegin + ((boxNumber - 7) * nextBoxOffset);
+            }
+
             currentPokemonOffset = currentBoxOffset + boxSizeToFirstPokemonOffset;
+            
         }
 
-        switch (boxNumber)
+        if (GetBoxSize(boxNumber) < 1)
         {
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-            case 6:
-                for (ushort i = 1; i <= GetBoxSize(boxNumber); ++i)
-                {
+            Console.WriteLine("Error: Box contains no Pokemon! Aborting.");
+        }
 
-                    
-                    name = PokemonData.GetPokemonName(GetData(currentPokemonOffset));
-                    level = (ushort)GetData(currentPokemonOffset + 0x03);
-                    ad = GetData(currentPokemonOffset + 0x1B);
-                    ss = GetData(currentPokemonOffset + 0x1C);
-                    attack = (ushort)(ad >> 4);
-                    defense = (ushort)(ad & 0x0F);
-                    speed = (ushort)(ss >> 4);
-                    special = (ushort)(ss & 0x0F);
-                    type = TypeData.GetName(GetData(currentPokemonOffset + 0x05));
-                    type2 = TypeData.GetName(GetData(currentPokemonOffset + 0x06));
 
-                    ivs = new IV
-                    {
-                        Hp = CalculateHpIv(attack, defense, special, speed),
-                        Attack = attack,
-                        Defense = defense,
-                        Speed = speed,
-                        Special = special
-                    };
+        for (ushort i = 1; i <= GetBoxSize(boxNumber); ++i)
+        {
 
-                    // Get OT name
-                    
-                    otNameOffset = currentBoxOffset + boxOtNameOffset + (otNickNextNameOffset * (i - 1));
-                    otName = GetEncodedText(otNameOffset, 0x50, 11);
+            
+            name = PokemonData.GetPokemonName(GetData(currentPokemonOffset));
+            level = (ushort)GetData(currentPokemonOffset + 0x03);
+            ad = GetData(currentPokemonOffset + 0x1B);
+            ss = GetData(currentPokemonOffset + 0x1C);
+            attack = (ushort)(ad >> 4);
+            defense = (ushort)(ad & 0x0F);
+            speed = (ushort)(ss >> 4);
+            special = (ushort)(ss & 0x0F);
+            type = TypeData.GetName(GetData(currentPokemonOffset + 0x05));
+            type2 = TypeData.GetName(GetData(currentPokemonOffset + 0x06));
 
-                    nickNameOffset = currentBoxOffset + boxNicknameOffset + (otNickNextNameOffset * (i - 1));
-                    nickname = GetEncodedText(nickNameOffset, 0x50, 11);
+            ivs = new IV
+            {
+                Hp = CalculateHpIv(attack, defense, special, speed),
+                Attack = attack,
+                Defense = defense,
+                Speed = speed,
+                Special = special
+            };
 
-                    current = new Pokemon(name, level, ivs, otName, nickname, type, type2);
-                    boxPokemon.Add(current);
-                    currentPokemonOffset += nextBoxPokemonOffset;
-                    //otName.Clear();
+            // Get OT name
+            
+            otNameOffset = currentBoxOffset + boxOtNameOffset + (otNickNextNameOffset * (i - 1));
+            otName = GetEncodedText(otNameOffset, 0x50, 11);
 
-                }
-                break;
+            nickNameOffset = currentBoxOffset + boxNicknameOffset + (otNickNextNameOffset * (i - 1));
+            nickname = GetEncodedText(nickNameOffset, 0x50, 11);
+
+            current = new Pokemon(name, level, ivs, otName, nickname, type, type2);
+            boxPokemon.Add(current);
+            currentPokemonOffset += nextBoxPokemonOffset;
+            //otName.Clear();
 
         }
 
@@ -670,8 +691,8 @@ public class GameData
         StringBuilder sb = new StringBuilder();
 
 
+        sb.AppendLine("-------------------");
         sb.AppendLine("Game Summary Report");
-        sb.AppendLine();
         sb.AppendLine("--------------------");
         sb.AppendLine();
         sb.AppendLine();
@@ -686,12 +707,29 @@ public class GameData
 
         sb.AppendLine(badges.getBadgesInfo());
 
+        sb.AppendLine("-----------");
         sb.AppendLine("Party Info:");
+        sb.AppendLine("___________");
         sb.AppendLine();
 
         sb.AppendLine(partyPokemon.GetInfo());
 
+        sb.AppendLine();
+        sb.AppendLine(pcPokemon.GetPcPokemonInfo());
+
+        sb.AppendLine();
         
+        sb.AppendLine("----------");
+        sb.AppendLine("Bag Items:");
+        sb.AppendLine("----------");
+        sb.AppendLine();
+
+        ushort count = 1;
+        foreach(Item current in bagItems)
+        {
+            sb.AppendLine($"Slot #{count++}:");
+            sb.AppendLine(current.GetInfo());
+        }
 
         return sb.ToString();
     }
