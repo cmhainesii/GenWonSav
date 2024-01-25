@@ -268,6 +268,11 @@ class Program
 
         Console.WriteLine(gameData.items.GetInfo());
 
+        Console.WriteLine($"Number of bag items: {gameData.items.count}");
+
+        Console.WriteLine(gameData.boxItems.GetInfo());
+        Console.WriteLine($"Number of box items: {gameData.boxItems.count}");
+
 
     }
 }
