@@ -50,10 +50,13 @@ public class GameData
     internal const int  checksumEndOffset = 0x3522;
     internal const int checksumLocationOffset = 0x3523;
 
+    internal const int boxItemsSizeOffset = 0x27E6;
+    internal const int boxFirstItemOffset = boxItemsSizeOffset + 0x01;
+
     public Party partyPokemon;
     public PokemonPC pcPokemon;
-
     public Bag items {get;}
+    public ItemBox boxItems{get;}
 
     public GameData(string fileName)
     {
@@ -62,6 +65,7 @@ public class GameData
         partyPokemon = new Party(this);
         pcPokemon = new PokemonPC(this);
         items = new Bag(GetBagItems());
+        this.boxItems = new ItemBox(GetBoxItems());
     }
 
     public void PatchHexBytes(byte[] newData, int startOffset)
@@ -626,6 +630,39 @@ public class GameData
 
     }
 
+
+    public List<Item> GetBoxItems()
+    {
+        List<Item> items = new List<Item>();
+
+        try {
+            ushort bagQty = (ushort)GetData(boxItemsSizeOffset);
+            int currentOffset = boxFirstItemOffset;
+            byte itemHexCode;
+            byte itemQty;
+            string itemName;
+            Item currentItem;
+
+            for (ushort i = 1; i <= 50; i++)
+            {
+                if (GetData(currentOffset) == 0xFF)
+                {
+                    break;
+                }
+                itemHexCode = GetData(currentOffset++);
+                itemQty = GetData(currentOffset++);
+                itemName = ItemData.GetName(itemHexCode);
+                currentItem = new Item(itemHexCode, (ushort)itemQty, itemName);
+                items.Add(currentItem);
+            }
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+
+        return items;
+    }
     public List<Item> GetBagItems()
     {
         List<Item> items = new List<Item>();
@@ -652,7 +689,7 @@ public class GameData
                 currentOffset += 0x02;
             }
 
-            return items;
+
         }
         catch (ArgumentException ex)
         {

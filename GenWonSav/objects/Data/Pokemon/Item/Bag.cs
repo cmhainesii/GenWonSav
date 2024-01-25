@@ -21,7 +21,12 @@ public class Bag
         sb.AppendLine();
         for(ushort i = 0; i < bagItems.Count; ++i)
         {
-            sb.AppendLine(bagItems[i].GetInfo());
+            sb.AppendLine($"{"Slot #:",10}{i + 1, 14}");
+            sb.Append(bagItems[i].GetInfo());
+            for(ushort j = 0; j < 24; ++j)
+            {
+                sb.Append("-");
+            }
             sb.AppendLine();
         }
 
