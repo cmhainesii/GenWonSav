@@ -265,5 +265,9 @@ class Program
 
         Console.WriteLine($"{gameData.pcPokemon.GetPcPokemonInfo()}");
         Console.WriteLine($"Total Pokemon Stored in PC: {gameData.pcPokemon.count:D3}");
+
+        Console.WriteLine(gameData.items.GetInfo());
+
+
     }
 }

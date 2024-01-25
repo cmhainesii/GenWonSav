@@ -52,7 +52,8 @@ public class GameData
 
     public Party partyPokemon;
     public PokemonPC pcPokemon;
-    public List<Item> bagItems {get;}
+
+    public Bag items {get;}
 
     public GameData(string fileName)
     {
@@ -60,7 +61,7 @@ public class GameData
         this.fileName = fileName;
         partyPokemon = new Party(this);
         pcPokemon = new PokemonPC(this);
-        this.bagItems = GetBagItems();
+        items = new Bag(GetBagItems());
     }
 
     public void PatchHexBytes(byte[] newData, int startOffset)
@@ -724,12 +725,9 @@ public class GameData
         sb.AppendLine("----------");
         sb.AppendLine();
 
-        ushort count = 1;
-        foreach(Item current in bagItems)
-        {
-            sb.AppendLine($"Slot #{count++}:");
-            sb.AppendLine(current.GetInfo());
-        }
+
+        sb.AppendLine(items.GetInfo());
+        
 
         return sb.ToString();
     }

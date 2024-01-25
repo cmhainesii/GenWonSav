@@ -21,9 +21,8 @@ public class Item
     public string GetInfo()
     {
         StringBuilder sb = new StringBuilder();
-
-        sb.AppendLine($"Item Name: {itemName}");
-        sb.AppendLine($"Qty: {quantity}");
+        sb.AppendLine($"{"Item Name:",10}{itemName,14}");
+        sb.AppendLine($"{"Qty:",10}{quantity,14}");
 
         return sb.ToString();
     }
