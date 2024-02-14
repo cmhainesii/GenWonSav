@@ -14,6 +14,10 @@ public class Box
         }
 
         boxCount = gameData.GetBoxSize(boxNumber);
+        if(boxCount == 255)
+        {
+            boxCount = 0;
+        }
         if (boxCount > 0)
         {
             pokemonList = gameData.GetBoxPokemon(boxNumber);

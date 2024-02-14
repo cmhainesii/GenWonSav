@@ -8,6 +8,8 @@ class Program
     {
         //GameData xferData;
         GameData gameData;
+        GameData oneData;
+        GameData twoData;
         try
         {
             // // Specify the file path
@@ -16,6 +18,13 @@ class Program
 
             string filePath = "data.sav";
             gameData = new GameData(filePath);
+
+            filePath = "oneData.sav";
+            oneData = new GameData(filePath);
+
+            filePath = "twoData.sav";
+            twoData = new GameData(filePath);
+            
         }
         catch (Exception ex)
         {
@@ -185,7 +194,7 @@ class Program
         //GameData.WriteCSV("red_box.csv", boxPokemon);
         GameData.WriteCSV("red_party.csv", partyPokemon);
 
-        gameData.changeRivalName("Dickwad");
+        gameData.ChangeRivalName("Dickwad");
 
 
 
@@ -230,49 +239,178 @@ class Program
         }
         Console.WriteLine();
 
+        //gameData.EmptyBag();
+
         // Calculate the checksum
-        try
-        {
-            int checksum = gameData.CalculateChecksum(GameData.checksumStartOffset, GameData.checksumEndOffset);
-            // Get the least significant 2 hex digits of the result
-            string hexChecksum = (checksum & 0xFF).ToString("X2");
+        // try
+        // {
+        //     int checksum = gameData.CalculateChecksum(GameData.checksumStartOffset, GameData.checksumEndOffset);
+        //     // Get the least significant 2 hex digits of the result
+        //     string hexChecksum = (checksum & 0xFF).ToString("X2");
 
-            // Convert the hex string to bytes
-            byte[] checksumBytes = new byte[] { Convert.ToByte(hexChecksum, 16) };
+        //     // Convert the hex string to bytes
+        //     byte[] checksumBytes = new byte[] { Convert.ToByte(hexChecksum, 16) };
 
-            gameData.PatchHexByte(checksumBytes[0], GameData.checksumLocationOffset);
+        //     gameData.PatchHexByte(checksumBytes[0], GameData.checksumLocationOffset);
 
-            gameData.WriteToFile();
+        //     gameData.WriteToFile();
 
-            // Print the hex checksum to the console
-            Console.WriteLine("Checksum: 0x" + hexChecksum);
-        }
-        catch (ArgumentException ex)
-        {
-            Console.WriteLine($"Error: {ex.Message}");
-        }
+        //     // Print the hex checksum to the console
+        //     Console.WriteLine("Checksum: 0x" + hexChecksum);
+        // }
+        // catch (ArgumentException ex)
+        // {`
+        //     Console.WriteLine($"Error: {ex.Message}");
+        // }
+        gameData.WriteToFile();
 
-        uint testMoney = gameData.TestGetMoney();
-        Console.WriteLine($"TestMoney: ₽{testMoney:N0}");
-        Console.WriteLine();
-        Console.WriteLine(gameData.GenerateGameReport());
+        // uint testMoney = gameData.TestGetMoney();
+        // Console.WriteLine($"TestMoney: ₽{testMoney:N0}");
+        // Console.WriteLine();
+        // Console.WriteLine(gameData.GenerateGameReport());
 
-        const string gameReportFilename = "GameSaveReport.txt";
-        File.WriteAllText(gameReportFilename, gameData.GenerateGameReport());
+        // const string gameReportFilename = "GameSaveReport.txt";
+        // File.WriteAllText(gameReportFilename, gameData.GenerateGameReport());
 
         //List<Pokemon> boxSeven = gameData.GetBoxPokemon(7);
 
 
-        Console.WriteLine($"{gameData.pcPokemon.GetPcPokemonInfo()}");
-        Console.WriteLine($"Total Pokemon Stored in PC: {gameData.pcPokemon.count:D3}");
+        // Console.WriteLine($"{gameData.pcPokemon.GetPcPokemonInfo()}");
+        // Console.WriteLine($"Total Pokemon Stored in PC: {gameData.pcPokemon.count:D3}");
 
-        Console.WriteLine(gameData.items.GetInfo());
+        // Console.WriteLine(gameData.items.GetInfo());
 
-        Console.WriteLine($"Number of bag items: {gameData.items.count}");
+        // Console.WriteLine($"Number of bag items: {gameData.items.count}");
 
-        Console.WriteLine(gameData.boxItems.GetInfo());
-        Console.WriteLine($"Number of box items: {gameData.boxItems.count}");
+        // Console.WriteLine(gameData.boxItems.GetInfo());
+        // Console.WriteLine($"Number of box items: {gameData.boxItems.count}");
 
 
+        // string? name;
+        // int id;
+        // int moneyInput;
+        // do
+        // {
+        //     Console.Write("Player Name: ");
+        //     name = Console.ReadLine();
+
+        //     if (string.IsNullOrEmpty(name))
+        //     {
+        //         Console.WriteLine("Error pasring name. Try again.");
+        //     }
+        // } while (string.IsNullOrEmpty(name));
+
+        // Console.Write("Trainer ID: ");
+        // while(!int.TryParse(Console.ReadLine(), out id))
+        // {
+        //     Console.WriteLine("Invalid input. Please enter a valid ID number.");
+        // }
+
+        // Console.Write("Money: ");
+        // while(!int.TryParse(Console.ReadLine(), out moneyInput))
+        // {
+        //     Console.WriteLine("Invalid input. Please enter a valid amount of money.");
+        // }
+
+        // string password = PokemonUtil.GCSTimeResetPassword(name, id, moneyInput);
+        // Console.WriteLine($"Time Reset Password: {password}");
+        
+
+        // Check for gen 1 data:
+        // Further testing needed but it appears gen 1 data byte array length is 32768
+        // and gen 2 data byte array length is 32816
+        if (oneData.GetDataSize() == 32768)
+        {
+            Console.WriteLine("oneData.sav is generation 1.");
+        }
+        else
+        {
+            Console.WriteLine("oneData.sav is generation 2.");
+        }
+
+        if(twoData.GetDataSize() == 32768)
+        {
+            Console.WriteLine("twoData.sav is generation 1.");
+        }
+        else
+        {
+            Console.WriteLine("twoData.sav is generation 2.");
+        }
+
+        
+
+
+        // gameData.items.WriteToFile("bank_01.dat");
+        // gameData.items.WriteToFile("bank_02.dat");
+
+
+        // byte[] bankData = File.ReadAllBytes("bank_01.dat");
+        // if(bankData.Length == 0x2A) {
+        //     Console.WriteLine("Data size appears to be valid. Proceeding.");
+        // }
+
+        // gameData.PatchHexBytes(bankData, GameData.bagSizeOffset);
+        // gameData.WriteToFile();
+        
+
+        // gameData.EmptyBag();
+
+
+        // gameData.WriteToFile();
+
+        //gameData.items.WriteToFile("test_bank.dat");
+        byte[] testData = File.ReadAllBytes("test_bank.dat");
+        if(testData.Length == 0x2B) {
+            Console.WriteLine("Crude check ok.");
+
+            byte[] data = new byte[Bag.BAG_SIZE_BYTES];
+            for(uint i = 0; i < Bag.BAG_SIZE_BYTES; ++i)
+            {
+                data[i] = testData[i];
+            }
+            byte checksum = testData[Bag.BAG_SIZE_BYTES];
+            
+            // Verify checksum is valid
+            if(!Bag.ValidateBagChecksum(data, checksum))
+            {
+                Console.WriteLine("Bag checksum invalid. Aborting.");
+            }
+            else
+            {
+                Console.WriteLine("Bag checksum validated. Patching hex bytes.");
+                gameData.EmptyBag();
+                gameData.PatchHexBytes(data, GameData.bagSizeOffset);
+            }
+        }
+
+        // GameData red1, red2, yellow, silver, crystal;
+        // red1 = new GameData("red1.sav");
+        // red2 = new GameData("red2.sav");
+        // yellow = new GameData("yellow.sav");
+        // silver = new GameData("silver.sav");
+        // crystal = new GameData("crystal.sav");
+
+        // List<GameData> testData = new List<GameData>();
+        // testData.Add(red1);
+        // testData.Add(red2);
+        // testData.Add(yellow);
+        // testData.Add(silver);
+        // testData.Add(crystal);
+
+        // foreach(GameData current in testData)
+        // {
+        //     string generation;
+        //     if (current.generation == 1)
+        //     {
+        //         generation = "gen1";
+        //     }
+        //     else
+        //     {
+        //         generation = "gen2";
+        //     }
+        //     Console.WriteLine($"Name: {current.fileName} Generation: {generation}");
+
+        //     // Console.WriteLine(red2.GenerateGameReport());
+        // }
     }
 }

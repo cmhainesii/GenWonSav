@@ -6,7 +6,16 @@ public class Party
 
     public Party(GameData gameData)
     {
-        pokemonList = gameData.GetPartyPokemon();
+        if (gameData.generation == 1) 
+        {
+            pokemonList = gameData.GetPartyPokemon();
+        }
+        else
+        {
+            pokemonList = new List<Pokemon>();
+        }
+
+        
     }
 
     public string GetInfo()

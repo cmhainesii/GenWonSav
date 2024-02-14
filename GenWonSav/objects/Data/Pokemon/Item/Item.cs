@@ -2,6 +2,7 @@ using System.Text;
 
 public class Item
 {
+    private const int BAG_SIZE_BYTES = 0x2A;
     public byte hexCode {get;}
     public ushort quantity {get;}
     public string itemName {get;}

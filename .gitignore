@@ -233,3 +233,6 @@ AppPackages/
 *.csv
 *.xlsx
 GenWonSav/GameSaveReport.txt
+GenWonSav/*.dat
+*.rtc
+*.srm

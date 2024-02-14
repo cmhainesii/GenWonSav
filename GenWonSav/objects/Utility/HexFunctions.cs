@@ -37,4 +37,40 @@ public static class HexFunctions
         moneyBytes[2] = HexFunctions.CreateByteFromDigits((amount %= 100) / 10, (amount %= 10) / 1);
         return moneyBytes;
     }
+
+    public static bool compareData(byte[] left, byte[] right)
+    {
+        if (left.Length != right.Length)
+        {
+            return false;
+        }
+
+        for(int i = 0; i < left.Length; ++i)
+        {
+            if(left[i] != right[i])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static uint CalculateChecksum(byte[] data, int startOffset, int endOffset)
+    {
+        if (startOffset < 0 || endOffset >= data.Length || startOffset > endOffset)
+        {
+            throw new ArgumentException("Invalid start or end offset.");
+        }
+
+        int checksum = 0;
+
+        // Iterate through the specified range and calculate the checksum
+        for (int i = startOffset; i <= endOffset; i++)
+        {
+            checksum += data[i];
+        }
+
+        return (uint) checksum;
+    }
 }

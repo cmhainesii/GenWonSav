@@ -3,9 +3,7 @@ using System.Xml.XPath;
 
 public class GameData
 {
-    private byte[] fileData;
-    private string fileName;
-
+    // Constants - Hex Data Offset Locations
     public const int partySizeOffset = 0x2F2C;
     public const int boxOneBegin = 0x4000;
 
@@ -53,21 +51,49 @@ public class GameData
     internal const int boxItemsSizeOffset = 0x27E6;
     internal const int boxFirstItemOffset = boxItemsSizeOffset + 0x01;
 
+
+    // Fields
+    private byte[] fileData;
+    public string fileName {get; set;}
+    public int generation {get;}
     public Party partyPokemon;
     public PokemonPC pcPokemon;
-    public Bag items {get;}
+    public Bag items {get; set;}
     public ItemBox boxItems{get;}
 
+    // Constructor
     public GameData(string fileName)
     {
         fileData = File.ReadAllBytes(fileName);
         this.fileName = fileName;
+        this.generation = DetermineGeneration();
+        
+        
         partyPokemon = new Party(this);
         pcPokemon = new PokemonPC(this);
         items = new Bag(GetBagItems());
         this.boxItems = new ItemBox(GetBoxItems());
+        
+        
     }
 
+    // Returns 1 if generation 1, 2 if generation 2.
+    private int DetermineGeneration()
+    {
+        // See if 0x00 - 0x2F are all zeros (generation 1)
+        if(HexFunctions.compareData(GetData(0x00, 0x2F), new byte[48]))
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+
+    // Function to insert data to the game save file
+    // newData = byte array of data to insert
+    // startOffset = where to begin insertion
     public void PatchHexBytes(byte[] newData, int startOffset)
     {
         if (newData.Length <= 0)
@@ -81,11 +107,13 @@ public class GameData
         }
     }
 
+    // Insert a single byte of data at a given offset
     public void PatchHexByte(byte newData, int offset)
     {
         fileData[offset] = newData;
     }
 
+    // Calculate checksum for generation 1 save file
     public int CalculateChecksum(int startOffset, int endOffset)
     {
         if (startOffset < 0 || endOffset >= fileData.Length || startOffset > endOffset)
@@ -104,6 +132,7 @@ public class GameData
         return ~checksum;
     }
 
+    // Fetch a byte of data from a given offset
     public byte GetData(int offset)
     {
         if (offset < 0 || offset >= fileData.Length)
@@ -113,6 +142,7 @@ public class GameData
         return fileData[offset];
     }
 
+    // Fetch a byte array from fileData between the start and end offset (inclusive).
     public byte[] GetData(int startOffset, int endOffset)
     {
         if (startOffset < 0 || endOffset < startOffset || endOffset >= fileData.Length)
@@ -127,8 +157,22 @@ public class GameData
         return result;
     }
 
+    public int GetDataSize()
+    {
+        return fileData.Length;
+    }
+
+    public void EmptyBag()
+    {
+        items.ClearBag();
+
+        byte[] bagClear = { 0x00, 0xFF};
+        PatchHexBytes(bagClear, bagSizeOffset);
+    }
+
     public void WriteToFile()
     {
+        UpdateChecksum();
         File.WriteAllBytes(fileName, fileData);
     }
 
@@ -142,7 +186,7 @@ public class GameData
         return GetEncodedText(rivalNameOffset, 0x50, 11);
     }
 
-    public void changeRivalName(string name)
+    public void ChangeRivalName(string name)
     {
         if (name.Length > 7 || name.Length <= 0)
         {
@@ -403,10 +447,11 @@ public class GameData
             currentPokemonOffset = currentBoxOffset + boxSizeToFirstPokemonOffset;
             
         }
+        int boxSize = GetBoxSize(boxNumber);
 
-        if (GetBoxSize(boxNumber) < 1)
+        if (boxSize < 1 || boxSize == 255)
         {
-            Console.WriteLine("Error: Box contains no Pokemon! Aborting.");
+            return boxPokemon;
         }
 
 
@@ -583,9 +628,9 @@ public class GameData
 
             foreach (Pokemon current in pokemon)
             {
-                writer.WriteLine($"{current._name},{current._level}," +
-                $"{current._ivs.Hp},{current._ivs.Attack},{current._ivs.Defense}," +
-                $"{current._ivs.Special},{current._ivs.Speed},{current._otName},{current._nickname}");
+                writer.WriteLine($"{current.name},{current.level}," +
+                $"{current.ivs.Hp},{current.ivs.Attack},{current.ivs.Defense}," +
+                $"{current.ivs.Special},{current.ivs.Speed},{current.otName},{current.nickname}");
             }
         }
         Console.WriteLine("CSV File created.");
@@ -635,6 +680,11 @@ public class GameData
     {
         List<Item> items = new List<Item>();
 
+        if (generation == 2)
+        {
+            return items;
+        }
+
         try {
             ushort bagQty = (ushort)GetData(boxItemsSizeOffset);
             int currentOffset = boxFirstItemOffset;
@@ -666,9 +716,14 @@ public class GameData
     public List<Item> GetBagItems()
     {
         List<Item> items = new List<Item>();
+
+        if(generation == 2) {
+            return items;
+        }
+
         try
         {
-            ushort bagQty = (ushort)GetData(bagSizeOffset);
+            ushort bagQty = GetData(bagSizeOffset);
             int currentOffset = bagFirstItemOffset;
             byte itemHexCode;
             byte itemQty;
@@ -757,10 +812,10 @@ public class GameData
 
         sb.AppendLine();
         
-        sb.AppendLine("----------");
-        sb.AppendLine("Bag Items:");
-        sb.AppendLine("----------");
-        sb.AppendLine();
+        // sb.AppendLine("----------");
+        // sb.AppendLine("Bag Items:");
+        // sb.AppendLine("----------");
+        // sb.AppendLine();
 
 
         sb.AppendLine(items.GetInfo());
@@ -772,5 +827,28 @@ public class GameData
     public Party GetParty()
     {
         return partyPokemon;
+    }
+
+    private void UpdateChecksum()
+    {
+        try
+        {
+            int checksum = CalculateChecksum(checksumStartOffset, checksumEndOffset);
+            // Get the least significant 2 hex digits of the result
+            string hexChecksum = (checksum & 0xFF).ToString("X2");
+
+            // Convert the hex string to bytes
+            byte[] checksumBytes = new byte[] { Convert.ToByte(hexChecksum, 16) };
+
+            PatchHexByte(checksumBytes[0], GameData.checksumLocationOffset);
+
+
+            // Print the hex checksum to the console
+            Console.WriteLine("Checksum: 0x" + hexChecksum);
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
     }
 }

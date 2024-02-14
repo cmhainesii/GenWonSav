@@ -9,17 +9,21 @@ public class PokemonPC
     {
         boxes = new Box[12];
 
-        for(ushort i = 0; i < 12; ++i)
+        if ( gameData.generation == 1)
         {
-            boxes[i] = new Box(gameData, (ushort)(i + 1));
-        }
 
-        int sum = 0;
-        foreach(Box current in boxes)
-        {
-            sum += current.boxCount;
+            for(ushort i = 0; i < 12; ++i)
+            {
+                boxes[i] = new Box(gameData, (ushort)(i + 1));
+            }
+
+            int sum = 0;
+            foreach(Box current in boxes)
+            {
+                sum += current.boxCount;
+            }
+            count = sum;
         }
-        count = sum;
     }
 
     public string GetPcPokemonInfo()
