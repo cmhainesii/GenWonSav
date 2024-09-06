@@ -32,10 +32,25 @@ public static class HexFunctions
         }
         byte[] moneyBytes = new byte[3];
 
-        moneyBytes[0] = HexFunctions.CreateByteFromDigits(amount / 100000,(amount %= 100_000) / 10_000);
+        moneyBytes[0] = HexFunctions.CreateByteFromDigits(amount / 100_000,(amount %= 100_000) / 10_000);
         moneyBytes[1] = HexFunctions.CreateByteFromDigits((amount %= 10000) / 1000, (amount %= 1000) / 100);
         moneyBytes[2] = HexFunctions.CreateByteFromDigits((amount %= 100) / 10, (amount %= 10) / 1);
         return moneyBytes;
+    }
+
+    /**
+    Convert six digit number to a three byte array
+    Used for translating an amount of money to a byte
+    array that can be written to the save file.
+    **/
+    public static byte[] IntToMoneyByte(int number) {
+        number = number > 999999 ? 999999 : number;
+        number = number < 0 ? 0 : number;
+        byte[] bytes = BitConverter.GetBytes(number);
+        Array.Reverse(bytes);
+        byte[] result = new byte[3];
+        Array.Copy(bytes, 1, result, 0, 3);
+        return result;
     }
 
     public static bool compareData(byte[] left, byte[] right)

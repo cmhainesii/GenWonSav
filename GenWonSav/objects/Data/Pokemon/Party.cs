@@ -12,7 +12,7 @@ public class Party
         }
         else
         {
-            pokemonList = new List<Pokemon>();
+            pokemonList = gameData.GetPartyPokemon2();
         }
 
         

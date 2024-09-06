@@ -1,10 +1,11 @@
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.XPath;
 
 public class GameData
 {
     // Constants - Hex Data Offset Locations
-    public const int partySizeOffset = 0x2F2C;
+
     public const int boxOneBegin = 0x4000;
 
     internal const int boxSevenBegin = 0x6000;
@@ -20,33 +21,14 @@ public class GameData
     public const int partySizeToFirstNickOffset = 0x152;
     public const int currentBoxDataBegin = 0x30C0;
     public const int currentlySetBoxOffset = 0x284C;
-    internal const int partyFirstPokemonOffset = partySizeOffset + partySizeToFirstOffset;
-    internal const int partyFirstOtNameOffset = partySizeOffset + partySizeToFirstOtOffset;
-    internal const int partyFirstNickOffset = partySizeOffset + partySizeToFirstNickOffset;
-    internal const int partyNextPokemonOffset = 0x2C;
+    
     internal const int partyOtIdOffset = 0x0C;
-
-    internal const int bagSizeOffset = 0x25C9;
-    internal const int bagFirstItemOffset = bagSizeOffset + 0x01;
-
-    internal const int ownedOffset = 0x25A3;
-
-    internal const int seenOffset = 0x25B6;
-
-    internal const int ownedSeenSize = 0x13;
-
     internal const int trainerNameOffset = 0x2598;
     internal const int trainerNameSize = 0x0B;
 
-    internal const int rivalNameOffset = 0x25F6;
-
     internal const int badgesOffset = 0x2602;
-
-    internal const int moneyOffset = 0x25F3;
-    internal const int moneyOffsetEnd = moneyOffset + 0x02;
-    internal const int checksumStartOffset = 0x2598;
-    internal const int  checksumEndOffset = 0x3522;
-    internal const int checksumLocationOffset = 0x3523;
+    
+    
 
     internal const int boxItemsSizeOffset = 0x27E6;
     internal const int boxFirstItemOffset = boxItemsSizeOffset + 0x01;
@@ -54,42 +36,50 @@ public class GameData
 
     // Fields
     private byte[] fileData;
-    public string fileName {get; set;}
-    public int generation {get;}
+    public string fileName { get; set; }
+    public int generation { get; set; }
+    internal bool crystal { get; set; }
     public Party partyPokemon;
     public PokemonPC pcPokemon;
-    public Bag items {get; set;}
-    public ItemBox boxItems{get;}
+    public Bag items { get; set; }
+    public ItemBox boxItems { get; }
+
+    internal Offsets offsets;
+    internal ItemData itemData;
+    internal PokemonData pokemonData;
 
     // Constructor
     public GameData(string fileName)
     {
         fileData = File.ReadAllBytes(fileName);
         this.fileName = fileName;
-        this.generation = DetermineGeneration();
-        
-        
+        this.generation = determineGeneration();
+        offsets = new Offsets(this.generation, this.crystal);
+        itemData = new ItemData(generation);
+        pokemonData = new PokemonData(generation);
+
+
+
         partyPokemon = new Party(this);
         pcPokemon = new PokemonPC(this);
-        items = new Bag(GetBagItems());
-        this.boxItems = new ItemBox(GetBoxItems());
-        
-        
-    }
-
-    // Returns 1 if generation 1, 2 if generation 2.
-    private int DetermineGeneration()
-    {
-        // See if 0x00 - 0x2F are all zeros (generation 1)
-        if(HexFunctions.compareData(GetData(0x00, 0x2F), new byte[48]))
-        {
-            return 1;
+        if(generation == 1) {
+            items = new Bag(GetBagItems(offsets.bagSizeOffset, 20));
         }
         else
         {
-            return 2;
+            items = new Bag(GetBagItems(offsets.bagSizeOffset, 20),
+            GetBagItems(offsets.ballsPocketOffset, 12),
+             GetBagItems(offsets.keyItemsPocketOffset, 26, false),
+             GetTMPocketItems(offsets.tmPocketOffset));
         }
+        
+        this.boxItems = new ItemBox(GetBoxItems());
+
+
     }
+
+    // Returns 1 if generation 1, 2 if generation 2.
+
 
     // Function to insert data to the game save file
     // newData = byte array of data to insert
@@ -107,6 +97,77 @@ public class GameData
         }
     }
 
+    private int determineGeneration()
+    {
+        ReadOnlySpan<byte> save = this.GetSaveData();
+        bool valid = false;
+        valid = ValidateList(save, 0x2F2C, 6) && ValidateList(save, 0x30C0, 20);
+        Console.WriteLine($"Found valid gen 1 lists (US): {valid}");
+        if (valid)
+        {
+            this.generation = 1;
+            this.crystal = false;
+            return this.generation;
+        }
+
+
+        valid = ValidateList(save, 0x2ED5, 6) && ValidateList(save, 0x302D, 30);
+        Console.WriteLine($"Found valid gen 1 lists (J): {valid}");
+        if (valid)
+        {
+            this.generation = 1;
+            this.crystal = false;
+            return this.generation;
+        }
+
+        valid = ValidateList(save, 0x288A, 6) && ValidateList(save, 0x2D6C, 20);
+        Console.WriteLine($"Found valid gen 2 (GS) lists (US): {valid}");
+        if (valid)
+        {
+            this.generation = 2;
+            this.crystal = false;
+            return this.generation;
+        }
+
+        valid = ValidateList(save, 0x2865, 6) && ValidateList(save, 0x2D10, 20);
+        Console.WriteLine($"Found valid gen 2 (C) lists (US): {valid}");
+        if (valid)
+        {
+            this.generation = 2;
+            this.crystal = true;
+            return this.generation;
+        }
+
+        valid = ValidateList(save, 0x283E, 6) && ValidateList(save, 0x2D10, 30);
+        Console.WriteLine($"Found valid gen 2 (GS) lists (J): {valid}");
+        if (valid)
+        {
+            this.generation = 2;
+            this.crystal = false;
+            return this.generation;
+        }
+        valid = ValidateList(save, 0x281A, 6) && ValidateList(save, 0x2D10, 30);
+        Console.WriteLine($"Found valid gen 2 (C) lists (J): {valid}");
+        if (valid)
+        {
+            this.generation = 2;
+            this.crystal = true;
+            return this.generation;
+        }
+
+        return -1;
+    }
+
+    private bool ValidateList(ReadOnlySpan<byte> data, int offset, int maxEntries)
+    {
+        byte listLength = data[offset];
+        return listLength <= maxEntries && data[offset + listLength + 1] == 0xFF;
+    }
+
+    public ReadOnlySpan<byte> GetSaveData()
+    {
+        return fileData;
+    }
     // Insert a single byte of data at a given offset
     public void PatchHexByte(byte newData, int offset)
     {
@@ -114,8 +175,11 @@ public class GameData
     }
 
     // Calculate checksum for generation 1 save file
-    public int CalculateChecksum(int startOffset, int endOffset)
+    internal int CalculateChecksum()
     {
+        ushort startOffset = (ushort)offsets.checksumStart;
+        ushort endOffset = (ushort)offsets.checksumEnd;
+
         if (startOffset < 0 || endOffset >= fileData.Length || startOffset > endOffset)
         {
             throw new ArgumentException("Invalid start or end offset.");
@@ -123,13 +187,30 @@ public class GameData
 
         int checksum = 0;
 
-        // Iterate through the specified range and calculate the checksum
-        for (int i = startOffset; i <= endOffset; i++)
+        if (generation == 1)
         {
-            checksum += fileData[i];
-        }
 
-        return ~checksum;
+            // Iterate through the specified range and calculate the checksum
+            for (ushort i = startOffset; i <= endOffset; i++)
+            {
+                checksum += fileData[i];
+            }
+
+            return ~checksum;
+        }
+        else
+        {
+            for(ushort i = startOffset; i <= endOffset; ++i)
+            {
+                checksum += fileData[i];
+            }
+
+            checksum = checksum & 0xFFFF;
+            checksum = (checksum >> 8) | ((checksum & 0xFF) << 8);
+            return checksum; // return least significant two bits
+
+            
+        }
     }
 
     // Fetch a byte of data from a given offset
@@ -166,24 +247,24 @@ public class GameData
     {
         items.ClearBag();
 
-        byte[] bagClear = { 0x00, 0xFF};
-        PatchHexBytes(bagClear, bagSizeOffset);
+        byte[] bagClear = { 0x00, 0xFF };
+        PatchHexBytes(bagClear, offsets.bagSizeOffset);
     }
 
     public void WriteToFile()
     {
-        UpdateChecksum();
+        UpdateChecksum(CalculateChecksum());
         File.WriteAllBytes(fileName, fileData);
     }
 
     public string GetTrainerName()
     {
-        return GetEncodedText(trainerNameOffset, 0x50, 11);
+        return GetEncodedText(offsets.trainerNameOffset, 0x50, 11);
     }
 
     public string GetRivalName()
     {
-        return GetEncodedText(rivalNameOffset, 0x50, 11);
+        return GetEncodedText(offsets.rivalNameOffset, 0x50, 11);
     }
 
     public void ChangeRivalName(string name)
@@ -200,7 +281,7 @@ public class GameData
             Console.WriteLine("Error: Encoded name text too long.");
             return;
         }
-        PatchHexBytes(encodedName, rivalNameOffset);
+        PatchHexBytes(encodedName, offsets.rivalNameOffset);
     }
 
     public void ChangePartyPokemonOtId(int newID)
@@ -279,51 +360,38 @@ public class GameData
 
     }
 
-    public uint GetMoney()
-    {
-        uint result = 0;     
-        int high, low;   
-        int count = 0;
-        byte[] money = GetData(moneyOffset, moneyOffset + 0x02);    
-        byte current = money[count++];
-
-        high = current >> 4;
-        low = current & 0xF;
-        result += (uint)(100000 * high);
-        result += (uint)(10000 * low);
-
-        current = money[count++];
-        high = current >> 4;
-        low = current & 0xF;
-        result += (uint)(1000 * high);
-        result += (uint)(100 * low);
-
-        current = money[count];
-        high = current >> 4;
-        low = current & 0xF;
-        result += (uint)(10 * high);
-        result += (uint)(1 * low);
-
-        return result;
-    }
 
     private int DecodeBCD(byte bcdByte)
     {
         return (bcdByte >> 4) * 10 + (bcdByte & 0xF);
     }
 
-    public uint TestGetMoney()
+    // Returns 32bit integer representing how much money the player has in decimal.
+    public uint GetMoney()
     {
-        byte[] money = GetData(moneyOffset, moneyOffsetEnd);
+        byte[] money = GetData(offsets.moneyOffset, offsets.moneyOffset + 2);
 
-        return (uint)(DecodeBCD(money[0]) * 10000 + DecodeBCD(money[1]) * 100 + DecodeBCD(money[2]) * 1);
+        if (generation == 1)
+        {
+            uint result = (uint)(DecodeBCD(money[0]) * 10000 +
+                         DecodeBCD(money[1]) * 100 +
+                         DecodeBCD(money[2]));
+            return result;
+        }
+        else
+        {
+
+            // Combine bytes (big-endian)
+            uint result = (uint)(money[2] | (money[1] << 8) | (money[0] << 16));
+            return result;
+        }
     }
 
 
     public ushort GetNumberOwned()
     {
         ushort sum = 0;
-        for (int i = ownedOffset; i <  ownedOffset + ownedSeenSize; ++i)
+        for (int i = offsets.ownedOffset; i < offsets.ownedOffset + offsets.ownedSeenSize; ++i)
         {
             sum += getSumBits(fileData[i]);
         }
@@ -334,7 +402,7 @@ public class GameData
     public ushort GetNumberSeen()
     {
         ushort sum = 0;
-        for (int i = seenOffset; i < seenOffset + ownedSeenSize; ++i)
+        for (int i = offsets.seenOffset; i < offsets.seenOffset + offsets.ownedSeenSize; ++i)
         {
             sum += getSumBits(fileData[i]);
         }
@@ -348,7 +416,7 @@ public class GameData
 
         for (int i = 0; i < 8; ++i)
         {
-            if((input & (1 << i)) != 0)
+            if ((input & (1 << i)) != 0)
             {
                 count++;
             }
@@ -360,7 +428,7 @@ public class GameData
     public ushort GetPartySize()
     {
 
-        return (ushort)GetData(partySizeOffset);
+        return (ushort)GetData(offsets.partySizeOffset);
 
     }
 
@@ -394,9 +462,9 @@ public class GameData
         {
             throw new ArgumentException($"Invalid party index. Exceeds party size of {GetPartySize()}.");
         }
-        try 
+        try
         {
-            string result = PokemonData.GetPokemonName(GetData(partySizeOffset + num));
+            string result = pokemonData.GetPokemonName(GetData(offsets.partySizeOffset + num));
             return result;
         }
         catch (KeyNotFoundException ex)
@@ -410,7 +478,8 @@ public class GameData
     public List<Pokemon> GetBoxPokemon(ushort boxNumber)
     {
         List<Pokemon> boxPokemon = new List<Pokemon>();
-        if (boxNumber < 1 || boxNumber > 12) {
+        if (boxNumber < 1 || boxNumber > 12)
+        {
             throw new ArgumentException("Error: Invalid box number. Aborting.");
         }
 
@@ -445,7 +514,7 @@ public class GameData
             }
 
             currentPokemonOffset = currentBoxOffset + boxSizeToFirstPokemonOffset;
-            
+
         }
         int boxSize = GetBoxSize(boxNumber);
 
@@ -458,8 +527,8 @@ public class GameData
         for (ushort i = 1; i <= GetBoxSize(boxNumber); ++i)
         {
 
-            
-            name = PokemonData.GetPokemonName(GetData(currentPokemonOffset));
+
+            name = pokemonData.GetPokemonName(GetData(currentPokemonOffset));
             level = (ushort)GetData(currentPokemonOffset + 0x03);
             ad = GetData(currentPokemonOffset + 0x1B);
             ss = GetData(currentPokemonOffset + 0x1C);
@@ -480,14 +549,14 @@ public class GameData
             };
 
             // Get OT name
-            
+
             otNameOffset = currentBoxOffset + boxOtNameOffset + (otNickNextNameOffset * (i - 1));
             otName = GetEncodedText(otNameOffset, 0x50, 11);
 
             nickNameOffset = currentBoxOffset + boxNicknameOffset + (otNickNextNameOffset * (i - 1));
             nickname = GetEncodedText(nickNameOffset, 0x50, 11);
 
-            current = new Pokemon(name, level, ivs, otName, nickname, type, type2);
+            current = new Pokemon(name, level, ivs, otName, nickname, type, type2, 1);
             boxPokemon.Add(current);
             currentPokemonOffset += nextBoxPokemonOffset;
             //otName.Clear();
@@ -510,14 +579,14 @@ public class GameData
         ushort speed;
         ushort special;
         IV ivs;
-        int currentPokemonOffset = partyFirstPokemonOffset;
+        int currentPokemonOffset = offsets.partySizeOffset + partySizeToFirstOffset;
         string otName;
         string nickname;
         string type;
         string type2;
         int otNameOffset;
         int nickOffset;
-    
+
 
 
 
@@ -544,15 +613,89 @@ public class GameData
                     Special = special
                 };
 
-                otNameOffset = partyFirstOtNameOffset + (otNickNextNameOffset * (i - 1));
+                otNameOffset = (offsets.partySizeOffset + partySizeToFirstOtOffset) + (otNickNextNameOffset * (i - 1));
                 otName = GetEncodedText(otNameOffset, 0x50, 11);
 
-                nickOffset = partyFirstNickOffset + (otNickNextNameOffset * (i - 1));
+                nickOffset = (offsets.partySizeOffset + partySizeToFirstNickOffset) + (otNickNextNameOffset * (i - 1));
                 nickname = GetEncodedText(nickOffset, 0x50, 11);
 
-                current = new Pokemon(name, level, ivs, otName, nickname, type, type2);
+                current = new Pokemon(name, level, ivs, otName, nickname, type, type2, 1);
                 partyPokemon.Add(current);
-                currentPokemonOffset += partyNextPokemonOffset; // increment by 44 bytes to get to next party pokemon
+                currentPokemonOffset += offsets.partyNextPokemonOffset; // increment by 44 bytes to get to next party pokemon
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+        }
+
+        return partyPokemon;
+    }
+
+    public List<Pokemon> GetPartyPokemon2()
+    {
+        List<Pokemon> partyPokemon = new List<Pokemon>();
+        Pokemon current;
+        string name;
+        ushort level;
+        byte ad;
+        byte ss;
+        ushort attack;
+        ushort defense;
+        ushort speed;
+        ushort special;
+        IV ivs;
+        int currentPokemonOffset = offsets.partySizeOffset + partySizeToFirstOffset;
+        string otName;
+        string nickname;
+        string type;
+        string type2;
+        int otNameOffset;
+        int nickOffset;
+        ushort partySize = GetPartySize();
+        ushort firstOtName = (ushort)(offsets.partySizeOffset + 8 + (48 * partySize));
+        ushort firstNickName = (ushort)(firstOtName + (11 * partySize));
+        byte heldItem;
+
+
+
+
+        for (ushort i = 1; i <= partySize; ++i)
+        {
+            try
+            {
+                name = GetPartyPokemonName(i);
+                level = (ushort)GetData(currentPokemonOffset + 0x1F);
+                ad = GetData(currentPokemonOffset + 0x15);
+                ss = GetData(currentPokemonOffset + 0x16);
+                attack = (ushort)(ad >> 4);
+                defense = (ushort)(ad & 0x0F);
+                speed = (ushort)(ss >> 4);
+                special = (ushort)(ss & 0x0F);
+                // type = TypeData.GetName(GetData(currentPokemonOffset + 0x05));
+                // type2 = TypeData.GetName(GetData(currentPokemonOffset + 0x06));
+                type = "TBD";
+                type2 = "TBD";
+                heldItem = GetData(currentPokemonOffset + 0x01);
+                
+                ivs = new IV
+                {
+                    Hp = CalculateHpIv(attack, defense, special, speed),
+                    Attack = attack,
+                    Defense = defense,
+                    Speed = speed,
+                    Special = special
+                };
+
+                otNameOffset = firstOtName + (otNickNextNameOffset * (i - 1));
+                otName = GetEncodedText(otNameOffset, 0x50, 11);
+
+                nickOffset = firstNickName + (otNickNextNameOffset * (i - 1));
+                nickname = GetEncodedText(nickOffset, 0x50, 11);
+
+                current = new Pokemon(name, level, ivs, otName, nickname, type, type2, 2, heldItem);
+                partyPokemon.Add(current);
+                currentPokemonOffset += offsets.partyNextPokemonOffset; // increment by 48 bytes to get to next party pokemon
             }
             catch (ArgumentException ex)
             {
@@ -598,39 +741,60 @@ public class GameData
         //PatchHexByte(0x01, partySizeOffset); debug only
 
         // 
-        int insertOffset = partyFirstPokemonOffset + (partyNextPokemonOffset * (slotNumber - 1));
+        int insertOffset = offsets.partySizeOffset + partySizeToFirstOffset + (offsets.partyNextPokemonOffset * (slotNumber - 1));
         PatchHexBytes(data.data, insertOffset);
 
-        PatchHexByte((byte)(partySize + 1), partySizeOffset);
-        PatchHexByte(data.data[0], partySizeOffset + slotNumber);
+        PatchHexByte((byte)(partySize + 1), offsets.partySizeOffset);
+        PatchHexByte(data.data[0], offsets.partySizeOffset + slotNumber);
 
         // Null terminator after party size (0xFF)
-        PatchHexByte(0xFF, partySizeOffset + slotNumber + 1);
+        PatchHexByte(0xFF, offsets.partySizeOffset + slotNumber + 1);
 
-        insertOffset = partyFirstOtNameOffset + (otNickNextNameOffset * (slotNumber - 1));
+        insertOffset = (offsets.partySizeOffset + partySizeToFirstOtOffset) + (otNickNextNameOffset * (slotNumber - 1));
         PatchHexBytes(data.otName, insertOffset);
 
-        insertOffset = partyFirstNickOffset + (otNickNextNameOffset * (slotNumber - 1));
+        insertOffset = (offsets.partySizeOffset + partySizeToFirstNickOffset) + (otNickNextNameOffset * (slotNumber - 1));
         PatchHexBytes(data.nickname, insertOffset);
 
-        insertOffset = partyFirstPokemonOffset + (partyNextPokemonOffset * (slotNumber - 1)) + partyOtIdOffset;
+        insertOffset = (offsets.partySizeOffset + partySizeToFirstOffset) + (offsets.partyNextPokemonOffset * (slotNumber - 1)) + partyOtIdOffset;
         PatchHexBytes(data.otId, insertOffset);
 
 
     }
 
-    public static void WriteCSV(string filename, List<Pokemon> pokemon)
+    public void WriteCSV(string filename, List<Pokemon> pokemon)
     {
         using (StreamWriter writer = new StreamWriter(filename))
         {
-            // Write the header row
-            writer.WriteLine("name,level,hp,attack,defense,special,speed,ot name,nickname");
-
-            foreach (Pokemon current in pokemon)
+            if(generation == 1)
             {
-                writer.WriteLine($"{current.name},{current.level}," +
-                $"{current.ivs.Hp},{current.ivs.Attack},{current.ivs.Defense}," +
-                $"{current.ivs.Special},{current.ivs.Speed},{current.otName},{current.nickname}");
+            // Write the header row
+            writer.WriteLine("Species,Level,HP,Attack,Defense,Special,Speed,Original Trainer,Nickname");
+
+                foreach (Pokemon current in pokemon)
+                {
+                    writer.WriteLine($"{current.name},{current.level}," +
+                    $"{current.ivs.Hp},{current.ivs.Attack},{current.ivs.Defense}," +
+                    $"{current.ivs.Special},{current.ivs.Speed},{current.otName},{current.nickname}");
+                }
+            }
+            else {
+                writer.WriteLine("Species,Level,Held Item,HP,Attack,Defense,Special Attack,Special Defense,Speed,Original Trainer,Nickname");
+                foreach (Pokemon current in pokemon) {
+                    writer.Write($"{current.name},{current.level},");
+                    if(current.heldItem == 0) {
+                        writer.Write("None,");
+                    }
+                    else
+                    {
+                        writer.Write($"{itemData.GetName(current.heldItem)},");
+                    }
+                    writer.Write($"{current.ivs.Hp},{current.ivs.Attack},{current.ivs.Defense},");
+                    writer.Write($"{current.ivs.Special},{current.ivs.Special},");
+                    writer.WriteLine($"{current.ivs.Speed},{current.otName},{current.nickname}");
+                }
+                
+
             }
         }
         Console.WriteLine("CSV File created.");
@@ -640,7 +804,7 @@ public class GameData
     public static byte[] EncodeText(string text, byte terminator)
     {
         byte[] encodedText = new byte[text.Length + 1];
-        for(int i = 0; i < text.Length; ++i)
+        for (int i = 0; i < text.Length; ++i)
         {
             encodedText[i] = TextEncoding.GetHexValue(text[i]);
         }
@@ -661,7 +825,7 @@ public class GameData
                 break;
             }
 
-            try 
+            try
             {
                 sb.Append(TextEncoding.GetCharacter(currentChar));
             }
@@ -685,7 +849,8 @@ public class GameData
             return items;
         }
 
-        try {
+        try
+        {
             ushort bagQty = (ushort)GetData(boxItemsSizeOffset);
             int currentOffset = boxFirstItemOffset;
             byte itemHexCode;
@@ -701,7 +866,7 @@ public class GameData
                 }
                 itemHexCode = GetData(currentOffset++);
                 itemQty = GetData(currentOffset++);
-                itemName = ItemData.GetName(itemHexCode);
+                itemName = itemData.GetName(itemHexCode);
                 currentItem = new Item(itemHexCode, (ushort)itemQty, itemName);
                 items.Add(currentItem);
             }
@@ -713,35 +878,88 @@ public class GameData
 
         return items;
     }
-    public List<Item> GetBagItems()
-    {
-        List<Item> items = new List<Item>();
 
-        if(generation == 2) {
-            return items;
-        }
+    public List<Item> GetTMPocketItems(int offset) {
+        List<Item> tms = new List<Item>();
+
+        byte[] tmOffsets = {
+            0xBF, 0xC0, 0XC1, 0xC2, 0xC4,
+            0xC5, 0xC6, 0xC7, 0xC8, 0xC9,
+            0xCA, 0xCB, 0xCC, 0xCD, 0xCE,
+            0xCF, 0xD0, 0xD1, 0xD2, 0xD3,
+            0xD4, 0xD5, 0xD6, 0xD7, 0xD8,
+            0xD9, 0xDA, 0xDB, 0xDD, 0xDE,
+            0xDF, 0xE0, 0xE1, 0xE2, 0xE3,
+            0xE4, 0xE5, 0xE6, 0xE7, 0xE8,
+            0xE9, 0xEA, 0xEB, 0xEC, 0xED,
+            0xEE, 0xEF, 0xF0, 0xF1, 0xF2, 
+            0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 
+            0xF8, 0xF9, 0xFA, 0xFB, 0xFC,
+            0xFD, 0xFE
+            
+        }; 
 
         try
         {
-            ushort bagQty = GetData(bagSizeOffset);
-            int currentOffset = bagFirstItemOffset;
+            byte itemQty;
+            Item currentItem;
+
+            for (ushort i = 0; i < 57; ++i)
+            {
+                itemQty = GetData(offset++);
+                if(itemQty > 0)
+                {
+                    currentItem = new Item(tmOffsets[i], itemQty, itemData.GetName(tmOffsets[i]));
+                    tms.Add(currentItem);
+                }
+            }
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+
+        return tms;
+    }
+    public List<Item> GetBagItems(int offset, ushort pocketMax, bool qtys = true)
+    {
+        List<Item> items = new List<Item>();
+
+        
+        try
+        {
+            ushort bagQty = GetData(offset);
+            int currentOffset = offset + 0x01;
             byte itemHexCode;
             byte itemQty;
             string itemName;
             Item currentItem;
-            
-            for (ushort i = 1; i <= 20; i++)
+
+            for (ushort i = 1; i <= pocketMax; i++)
             {
                 if (GetData(currentOffset) == 0xFF)
                 {
                     break;
                 }
                 itemHexCode = GetData(currentOffset);
-                itemQty = GetData(currentOffset + 0x01);
-                itemName = ItemData.GetName(itemHexCode);
+                if(!qtys) {
+                    itemQty = 1;
+                }
+                else
+                {
+                    itemQty = GetData(currentOffset + 0x01);
+                }
+                
+                itemName = itemData.GetName(itemHexCode);
                 currentItem = new Item(itemHexCode, itemQty, itemName);
                 items.Add(currentItem);
-                currentOffset += 0x02;
+                if(!qtys) {
+                    currentOffset++;
+                }
+                else 
+                {
+                    currentOffset += 0x02;
+                }
             }
 
 
@@ -755,7 +973,7 @@ public class GameData
 
     public void AddItemToBag(Item item)
     {
-        ushort bagSize = (ushort)GetData(bagSizeOffset);
+        ushort bagSize = (ushort)GetData(offsets.bagSizeOffset);
 
         if (bagSize >= 20)
         {
@@ -770,12 +988,12 @@ public class GameData
         }
 
         // Increment bag size in save data
-        PatchHexByte((byte)(bagSize + 1), bagSizeOffset);
+        PatchHexByte((byte)(bagSize + 1), offsets.bagSizeOffset);
 
-        int offset = bagFirstItemOffset + (0x02 * bagSize);
-        byte[] hexBytes = { item.hexCode, item.getQuantityHex(), 0xFF};
+        int offset = (offsets.bagSizeOffset + 0x01) + (0x02 * bagSize);
+        byte[] hexBytes = { item.hexCode, item.getQuantityHex(), 0xFF };
         PatchHexBytes(hexBytes, offset);
-        
+
     }
 
 
@@ -795,7 +1013,7 @@ public class GameData
         sb.AppendLine($"{"Pokemon Caught: ",16} {GetNumberOwned(),7:D3}");
 
         sb.AppendLine();
-        
+
         Badges badges = GetBadges();
 
         sb.AppendLine(badges.getBadgesInfo());
@@ -811,7 +1029,7 @@ public class GameData
         sb.AppendLine(pcPokemon.GetPcPokemonInfo());
 
         sb.AppendLine();
-        
+
         // sb.AppendLine("----------");
         // sb.AppendLine("Bag Items:");
         // sb.AppendLine("----------");
@@ -819,7 +1037,7 @@ public class GameData
 
 
         sb.AppendLine(items.GetInfo());
-        
+
 
         return sb.ToString();
     }
@@ -829,22 +1047,18 @@ public class GameData
         return partyPokemon;
     }
 
-    private void UpdateChecksum()
+    private void UpdateChecksum(int checksum)
     {
         try
         {
-            int checksum = CalculateChecksum(checksumStartOffset, checksumEndOffset);
-            // Get the least significant 2 hex digits of the result
-            string hexChecksum = (checksum & 0xFF).ToString("X2");
-
             // Convert the hex string to bytes
-            byte[] checksumBytes = new byte[] { Convert.ToByte(hexChecksum, 16) };
+            byte highByte = (byte)((checksum >> 8) & 0xFF);
+            byte lowByte = (byte)(checksum & 0xFF);
+            byte[] checksumBytes = new byte[] { highByte, lowByte};
 
-            PatchHexByte(checksumBytes[0], GameData.checksumLocationOffset);
+            PatchHexBytes(checksumBytes, offsets.checksumLocation);
 
 
-            // Print the hex checksum to the console
-            Console.WriteLine("Checksum: 0x" + hexChecksum);
         }
         catch (ArgumentException ex)
         {

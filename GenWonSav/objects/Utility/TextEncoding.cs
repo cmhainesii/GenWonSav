@@ -101,7 +101,7 @@ public static class TextEncoding {
             return character;
         }
         else {
-            throw new KeyNotFoundException($"Hex value '{hexValue}' not found.");
+            return character;
         }
     }   
 }
