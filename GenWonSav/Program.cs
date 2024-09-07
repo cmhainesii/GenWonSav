@@ -1,8 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
-using static HexFunctions;
-class Program
+﻿class Program
 {
 
     static void Main()
@@ -10,7 +6,7 @@ class Program
         List<GameData> saveCollection = new List<GameData>();
         GameData gameData;  
 
-        gameData = new GameData("data2.sav");
+        gameData = new GameData("blue.sav");
         saveCollection.Add(gameData);
 
         String trainerName = gameData.GetTrainerName();
@@ -37,7 +33,7 @@ class Program
 
         Console.WriteLine(gameData.partyPokemon.GetInfo());
 
-        gameData.WriteCSV("gen2test.csv", gameData.GetPartyPokemon2());
+        gameData.WriteCSV("gen2test.csv", gameData.GetGen2PartyPokemon());
 
 
         // Console.WriteLine($"{gameData.items.GetInfo()}");

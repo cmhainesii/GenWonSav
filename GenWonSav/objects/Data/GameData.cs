@@ -475,7 +475,7 @@ public class GameData
     }
 
 
-    public List<Pokemon> GetBoxPokemon(ushort boxNumber)
+    internal List<Pokemon> GetBoxPokemon(ushort boxNumber)
     {
         List<Pokemon> boxPokemon = new List<Pokemon>();
         if (boxNumber < 1 || boxNumber > 12)
@@ -541,11 +541,12 @@ public class GameData
 
             ivs = new IV
             {
-                Hp = CalculateHpIv(attack, defense, special, speed),
+                HP = CalculateHpIv(attack, defense, special, speed),
                 Attack = attack,
                 Defense = defense,
                 Speed = speed,
-                Special = special
+                SpecialAttack = special,
+                SpecialDefense = special
             };
 
             // Get OT name
@@ -556,7 +557,7 @@ public class GameData
             nickNameOffset = currentBoxOffset + boxNicknameOffset + (otNickNextNameOffset * (i - 1));
             nickname = GetEncodedText(nickNameOffset, 0x50, 11);
 
-            current = new Pokemon(name, level, ivs, otName, nickname, type, type2, 1);
+            current = new Pokemon(name, level, ivs, new Stats(), otName, nickname, type, type2, 1);
             boxPokemon.Add(current);
             currentPokemonOffset += nextBoxPokemonOffset;
             //otName.Clear();
@@ -566,7 +567,7 @@ public class GameData
         return boxPokemon;
     }
 
-    public List<Pokemon> GetPartyPokemon()
+    internal List<Pokemon> GetGen1PartyPokemon()
     {
         List<Pokemon> partyPokemon = new List<Pokemon>();
         Pokemon current;
@@ -579,6 +580,7 @@ public class GameData
         ushort speed;
         ushort special;
         IV ivs;
+        Stats stats;
         int currentPokemonOffset = offsets.partySizeOffset + partySizeToFirstOffset;
         string otName;
         string nickname;
@@ -606,12 +608,25 @@ public class GameData
                 type2 = TypeData.GetName(GetData(currentPokemonOffset + 0x06));
                 ivs = new IV
                 {
-                    Hp = CalculateHpIv(attack, defense, special, speed),
+                    HP = CalculateHpIv(attack, defense, special, speed),
                     Attack = attack,
                     Defense = defense,
                     Speed = speed,
-                    Special = special
+                    SpecialAttack = special,
+                    SpecialDefense = special
                 };
+                
+                ushort cursor = (ushort)(currentPokemonOffset + 0x22);
+                stats = new Stats {
+                    HP = (ushort)(GetData(cursor++) + GetData(cursor++)),
+                    Attack = (ushort)(GetData(cursor++) + GetData(cursor++)),
+                    Defense = (ushort)(GetData(cursor++) + GetData(cursor++)),
+                    Speed = (ushort)(GetData(cursor++) + GetData(cursor++)),
+                    SpecialAttack = (ushort)(GetData(cursor) + GetData(cursor + 1)),
+                    SpecialDefense = (ushort)(GetData(cursor++) + GetData(cursor++))
+                };
+
+
 
                 otNameOffset = (offsets.partySizeOffset + partySizeToFirstOtOffset) + (otNickNextNameOffset * (i - 1));
                 otName = GetEncodedText(otNameOffset, 0x50, 11);
@@ -619,7 +634,7 @@ public class GameData
                 nickOffset = (offsets.partySizeOffset + partySizeToFirstNickOffset) + (otNickNextNameOffset * (i - 1));
                 nickname = GetEncodedText(nickOffset, 0x50, 11);
 
-                current = new Pokemon(name, level, ivs, otName, nickname, type, type2, 1);
+                current = new Pokemon(name, level, ivs, stats   , otName, nickname, type, type2, 1);
                 partyPokemon.Add(current);
                 currentPokemonOffset += offsets.partyNextPokemonOffset; // increment by 44 bytes to get to next party pokemon
             }
@@ -632,7 +647,7 @@ public class GameData
         return partyPokemon;
     }
 
-    public List<Pokemon> GetPartyPokemon2()
+    internal List<Pokemon> GetGen2PartyPokemon()
     {
         List<Pokemon> partyPokemon = new List<Pokemon>();
         Pokemon current;
@@ -644,7 +659,9 @@ public class GameData
         ushort defense;
         ushort speed;
         ushort special;
+        ushort special2;
         IV ivs;
+        Stats stats;
         int currentPokemonOffset = offsets.partySizeOffset + partySizeToFirstOffset;
         string otName;
         string nickname;
@@ -652,6 +669,7 @@ public class GameData
         string type2;
         int otNameOffset;
         int nickOffset;
+        ushort hp;
         ushort partySize = GetPartySize();
         ushort firstOtName = (ushort)(offsets.partySizeOffset + 8 + (48 * partySize));
         ushort firstNickName = (ushort)(firstOtName + (11 * partySize));
@@ -680,12 +698,30 @@ public class GameData
                 
                 ivs = new IV
                 {
-                    Hp = CalculateHpIv(attack, defense, special, speed),
+                    HP = CalculateHpIv(attack, defense, special, speed),
                     Attack = attack,
                     Defense = defense,
                     Speed = speed,
-                    Special = special
+                    SpecialAttack = special,
+                    SpecialDefense = special
                 };
+
+                hp = (ushort)(GetData(currentPokemonOffset + 0x24) + GetData(currentPokemonOffset + 0x25));
+                attack = (ushort)(GetData(currentPokemonOffset + 0x26) + GetData(currentPokemonOffset + 0x27));
+                defense = (ushort)(GetData(currentPokemonOffset + 0x28) + GetData(currentPokemonOffset + 0x29));
+                speed = (ushort)(GetData(currentPokemonOffset + 0x2A) + GetData(currentPokemonOffset + 0x2B));
+                special = (ushort)(GetData(currentPokemonOffset + 0x2C) + GetData(currentPokemonOffset + 0x2D));
+                special2 =  (ushort)(GetData(currentPokemonOffset + 0x2E) + GetData(currentPokemonOffset + 0x2F));
+                stats = new Stats {
+                    HP = hp,
+                    Attack = attack,
+                    Defense = defense,
+                    Speed = speed,
+                    SpecialAttack = special,
+                    SpecialDefense = special2
+                };
+                
+                
 
                 otNameOffset = firstOtName + (otNickNextNameOffset * (i - 1));
                 otName = GetEncodedText(otNameOffset, 0x50, 11);
@@ -693,7 +729,7 @@ public class GameData
                 nickOffset = firstNickName + (otNickNextNameOffset * (i - 1));
                 nickname = GetEncodedText(nickOffset, 0x50, 11);
 
-                current = new Pokemon(name, level, ivs, otName, nickname, type, type2, 2, heldItem);
+                current = new Pokemon(name, level, ivs, stats, otName, nickname, type, type2, 2, heldItem);
                 partyPokemon.Add(current);
                 currentPokemonOffset += offsets.partyNextPokemonOffset; // increment by 48 bytes to get to next party pokemon
             }
@@ -762,20 +798,20 @@ public class GameData
 
     }
 
-    public void WriteCSV(string filename, List<Pokemon> pokemon)
+    internal void WriteCSV(string filename, List<Pokemon> pokemon)
     {
         using (StreamWriter writer = new StreamWriter(filename))
         {
             if(generation == 1)
             {
             // Write the header row
-            writer.WriteLine("Species,Level,HP,Attack,Defense,Special,Speed,Original Trainer,Nickname");
+            writer.WriteLine("Species,Level,HP,Attack,Defense,Special Attack,Special Defense,Speed,Original Trainer,Nickname");
 
                 foreach (Pokemon current in pokemon)
                 {
                     writer.WriteLine($"{current.name},{current.level}," +
-                    $"{current.ivs.Hp},{current.ivs.Attack},{current.ivs.Defense}," +
-                    $"{current.ivs.Special},{current.ivs.Speed},{current.otName},{current.nickname}");
+                    $"{current.IVs.HP},{current.IVs.Attack},{current.IVs.Defense}," +
+                    $"{current.IVs.SpecialAttack}, {current.IVs.SpecialDefense},{current.IVs.Speed},{current.otName},{current.nickname}");
                 }
             }
             else {
@@ -789,9 +825,9 @@ public class GameData
                     {
                         writer.Write($"{itemData.GetName(current.heldItem)},");
                     }
-                    writer.Write($"{current.ivs.Hp},{current.ivs.Attack},{current.ivs.Defense},");
-                    writer.Write($"{current.ivs.Special},{current.ivs.Special},");
-                    writer.WriteLine($"{current.ivs.Speed},{current.otName},{current.nickname}");
+                    writer.Write($"{current.IVs.HP},{current.IVs.Attack},{current.IVs.Defense},");
+                    writer.Write($"{current.IVs.SpecialAttack},{current.IVs.SpecialDefense},");
+                    writer.WriteLine($"{current.IVs.Speed},{current.otName},{current.nickname}");
                 }
                 
 

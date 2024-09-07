@@ -8,11 +8,11 @@ public class Party
     {
         if (gameData.generation == 1) 
         {
-            pokemonList = gameData.GetPartyPokemon();
+            pokemonList = gameData.GetGen1PartyPokemon();
         }
         else
         {
-            pokemonList = gameData.GetPartyPokemon2();
+            pokemonList = gameData.GetGen2PartyPokemon();
         }
 
         
@@ -21,9 +21,12 @@ public class Party
     public string GetInfo()
     {
         StringBuilder sb = new StringBuilder();
+        string notFancyLine = "----------------------------------------";
 
         sb.AppendLine("Party Information:");
         sb.AppendLine();
+        sb.AppendLine(notFancyLine);
+        
 
         ushort count = 0;
 
@@ -32,6 +35,7 @@ public class Party
             sb.AppendLine($"Party Pokemon #{++count}");
             sb.AppendLine();
             sb.AppendLine(current.GetInfo());   
+            sb.AppendLine(notFancyLine);
         }
 
         return sb.ToString();
