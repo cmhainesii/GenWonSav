@@ -12,6 +12,7 @@
 *.user
 *.sln.docstates
 *.backup
+*.txt
 
 # Build results
 [Dd]ebug/

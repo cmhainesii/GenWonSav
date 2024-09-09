@@ -15,6 +15,16 @@ internal class Offsets
     internal readonly int checksumEnd;
     internal readonly int checksumLocation;
     internal readonly int partyNextPokemonOffset;
+    internal readonly ushort currentlySetBoxOffset;
+    internal readonly ushort currentBoxDataBegin;
+    internal readonly ushort nextBoxOffset;
+    internal readonly ushort nextBoxPokemonOffset;
+    internal readonly ushort boxLevelOffset;
+    internal readonly ushort boxIvOffset;
+    internal readonly ushort boxOtNameOffset;
+    internal readonly ushort boxNicknameOffset;
+    internal readonly ushort boxEvOffset;
+    internal readonly ushort badgesOffset;
 
     // internal const int checksumLocationOffset = 0x3523;
 
@@ -39,6 +49,16 @@ internal class Offsets
             checksumEnd = 0x3522;
             checksumLocation = 0x3523;
             partyNextPokemonOffset = 0x2C; // 44
+            currentlySetBoxOffset = 0x284C;
+            currentBoxDataBegin = 0x30C0;
+            nextBoxOffset = 0x462;
+            nextBoxPokemonOffset = 0x21;
+            boxLevelOffset = 0x03;
+            boxIvOffset = 0x1B;
+            boxOtNameOffset = 0x2AA;
+            boxNicknameOffset = 0x386;
+            boxEvOffset = 0x11;
+            badgesOffset = 0x2602;
         }
         else { 
             // gsc all use the same offset here
@@ -46,6 +66,13 @@ internal class Offsets
             rivalNameOffset = 0x2021;
             ownedSeenSize = 0x20; // 32 bits
             partyNextPokemonOffset = 48;
+            nextBoxOffset = 0x450;
+            nextBoxPokemonOffset = 0x20;
+            boxLevelOffset = 0x1F;
+            boxIvOffset = 0x15;
+            boxOtNameOffset = 0x296;
+            boxNicknameOffset = 0x372;
+            boxEvOffset = 0x0B;
 
             if(cyrstal) {
                 moneyOffset = 0x23DC;
@@ -59,6 +86,10 @@ internal class Offsets
                 checksumStart = 0x2009;
                 checksumEnd = 0x2B82;
                 checksumLocation = 0x2D0D;
+                currentlySetBoxOffset = 0x2700;
+                currentBoxDataBegin = 0x2D10;
+                badgesOffset = 0x23E5;
+                
             }
             else{
                 moneyOffset = 0x23DB;   
@@ -72,6 +103,9 @@ internal class Offsets
                 checksumStart = 0x2009;
                 checksumEnd = 0x2D68;
                 checksumLocation = 0x2D69;
+                currentlySetBoxOffset = 0x2724;     
+                currentBoxDataBegin = 0x2D6C;
+                badgesOffset = 0x23E4;      
             }
 
         }

@@ -1,12 +1,17 @@
 ﻿class Program
 {
 
-    static void Main()
+    static void Main(string[] args)
     {
+        string fileName = "data3.sav";
+
+        if(args.Length > 0) {
+            fileName = args[0];
+        }
         List<GameData> saveCollection = new List<GameData>();
         GameData gameData;  
 
-        gameData = new GameData("blue.sav");
+        gameData = new GameData(fileName);
         saveCollection.Add(gameData);
 
         String trainerName = gameData.GetTrainerName();
@@ -31,9 +36,16 @@
         }
         Console.WriteLine();
 
-        Console.WriteLine(gameData.partyPokemon.GetInfo());
+        //Console.WriteLine(gameData.partyPokemon.GetInfo());
 
         gameData.WriteCSV("gen2test.csv", gameData.GetGen2PartyPokemon());
+
+
+        Console.WriteLine(gameData.GetBadges().getBadgesInfo(gameData.generation));
+        
+
+
+        //Console.WriteLine(gameData.pcPokemon.GetPcPokemonInfo());
 
 
         // Console.WriteLine($"{gameData.items.GetInfo()}");

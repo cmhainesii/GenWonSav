@@ -1,3 +1,5 @@
+using System.Globalization;
+
 public static class HexFunctions
 {
     public static byte[] ConvertIntToHexBytes(int number)
@@ -70,22 +72,8 @@ public static class HexFunctions
 
         return true;
     }
-
-    public static uint CalculateChecksum(byte[] data, int startOffset, int endOffset)
+    internal static Boolean BitIsSet(byte input, byte position)
     {
-        if (startOffset < 0 || endOffset >= data.Length || startOffset > endOffset)
-        {
-            throw new ArgumentException("Invalid start or end offset.");
-        }
-
-        int checksum = 0;
-
-        // Iterate through the specified range and calculate the checksum
-        for (int i = startOffset; i <= endOffset; i++)
-        {
-            checksum += data[i];
-        }
-
-        return (uint) checksum;
+        return (input & (1 << position)) != 0;
     }
 }

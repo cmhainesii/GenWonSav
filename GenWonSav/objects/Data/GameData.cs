@@ -1,3 +1,4 @@
+using System.Net.Mail;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.XPath;
@@ -5,28 +6,20 @@ using System.Xml.XPath;
 public class GameData
 {
     // Constants - Hex Data Offset Locations
-
-    public const int boxOneBegin = 0x4000;
-
-    internal const int boxSevenBegin = 0x6000;
     public const int boxSizeToFirstPokemonOffset = 0x16;
-    public const int boxOneFirstPokemon = boxOneBegin + boxSizeToFirstPokemonOffset;
-    public const int nextBoxOffset = 0x462;
-    public const int nextBoxPokemonOffset = 0x21;
-    public const int boxOtNameOffset = 0x2AA;
-    public const int boxNicknameOffset = 0x386;
+    internal const ushort BOX_ONE_BEGIN = 0x4000;    
+    internal const ushort BOX_SEVEN_BEGIN = 0x6000;
+    
+    
     public const int otNickNextNameOffset = 0x0B;
     public const int partySizeToFirstOffset = 0x08;
     public const int partySizeToFirstOtOffset = 0x110;
     public const int partySizeToFirstNickOffset = 0x152;
-    public const int currentBoxDataBegin = 0x30C0;
-    public const int currentlySetBoxOffset = 0x284C;
-    
     internal const int partyOtIdOffset = 0x0C;
     internal const int trainerNameOffset = 0x2598;
     internal const int trainerNameSize = 0x0B;
 
-    internal const int badgesOffset = 0x2602;
+    
     
     
 
@@ -99,7 +92,7 @@ public class GameData
 
     private int determineGeneration()
     {
-        ReadOnlySpan<byte> save = this.GetSaveData();
+        ReadOnlySpan<byte> save = GetSaveData();
         bool valid = false;
         valid = ValidateList(save, 0x2F2C, 6) && ValidateList(save, 0x30C0, 20);
         Console.WriteLine($"Found valid gen 1 lists (US): {valid}");
@@ -180,7 +173,7 @@ public class GameData
         ushort startOffset = (ushort)offsets.checksumStart;
         ushort endOffset = (ushort)offsets.checksumEnd;
 
-        if (startOffset < 0 || endOffset >= fileData.Length || startOffset > endOffset)
+        if (startOffset < 0 || endOffset >= GetSaveData().Length || startOffset > endOffset)
         {
             throw new ArgumentException("Invalid start or end offset.");
         }
@@ -204,10 +197,10 @@ public class GameData
             {
                 checksum += fileData[i];
             }
-
-            checksum = checksum & 0xFFFF;
-            checksum = (checksum >> 8) | ((checksum & 0xFF) << 8);
-            return checksum; // return least significant two bits
+            
+            checksum = checksum & 0xFFFF; // Isolate checksum to least significant two bytes
+            checksum = (checksum >> 8) | ((checksum & 0xFF) << 8); // Swap the high and low bytes
+            return checksum;
 
             
         }
@@ -310,54 +303,21 @@ public class GameData
 
     public Badges GetBadges()
     {
-        bool boulder = false;
-        bool cascade = false;
-        bool thunder = false;
-        bool rainbow = false;
-        bool soul = false;
-        bool marsh = false;
-        bool volcano = false;
-        bool earth = false;
+        bool[] values = new bool[8];
 
-        byte data = fileData[badgesOffset];
-        if ((data & (1 << 0)) != 0)
+        byte data = GetSaveData()[offsets.badgesOffset];
+
+        for(byte index = 0; index < 8; ++index)
         {
-            boulder = true;
+            if(HexFunctions.BitIsSet(data, index))
+            {
+                values[index] = true;
+            }
         }
-        if ((data & (1 << 1)) != 0)
-        {
-            cascade = true;
-        }
-        if ((data & (1 << 2)) != 0)
-        {
-            thunder = true;
-        }
-        if ((data & (1 << 3)) != 0)
-        {
-            rainbow = true;
-        }
-        if ((data & (1 << 4)) != 0)
-        {
-            soul = true;
-        }
-        if ((data & (1 << 5)) != 0)
-        {
-            marsh = true;
-        }
-        if ((data & (1 << 6)) != 0)
-        {
-            volcano = true;
-        }
-        if ((data & (1 << 7)) != 0)
-        {
-            earth = true;
-        }
-        Badges badges = new Badges(boulder, cascade, thunder, rainbow,
-            soul, marsh, volcano, earth);
+
+        Badges badges = new Badges(values);
 
         return badges;
-
-
     }
 
 
@@ -432,21 +392,29 @@ public class GameData
 
     }
 
-    public ushort GetBoxSize(ushort boxNum)
+    internal ushort GetBoxSize(ushort boxNum)
     {
-        if ((GetData(currentlySetBoxOffset) & 0x7F) + 1 == boxNum)
+        if (GetData(offsets.currentlySetBoxOffset) + 1 == boxNum)
         {
-            return (ushort)GetData(currentBoxDataBegin);
+            return (ushort)GetData(offsets.currentBoxDataBegin);
+            
         }
         else
         {
-            if (boxNum < 7)
+            if(generation == 1)
             {
-                return (ushort)GetData(boxOneBegin + ((boxNum - 1) * nextBoxOffset));
+                if (boxNum < 7)
+                {
+                    return (ushort)GetData(BOX_ONE_BEGIN + ((boxNum - 1) * offsets.nextBoxOffset));
+                }
+                else
+                {
+                    return (ushort)GetData(BOX_SEVEN_BEGIN + ((boxNum - 7) * offsets.nextBoxOffset));
+                }
             }
             else
             {
-                return (ushort)GetData(boxSevenBegin + ((boxNum - 7) * nextBoxOffset));
+             return GetData(BOX_ONE_BEGIN + ((boxNum - 1) * offsets.nextBoxOffset));   
             }
         }
     }
@@ -487,8 +455,9 @@ public class GameData
         string name;
         ushort level;
         byte ad, ss;
-        ushort attack, defense, speed, special;
+        ushort attack, defense, speed, special, hp;
         IV ivs;
+        EVs evs;
         int currentBoxOffset;
         int currentPokemonOffset;
         int otNameOffset;
@@ -497,20 +466,29 @@ public class GameData
         string nickname;
         string type;
         string type2;
-        if ((GetData(currentlySetBoxOffset) & 0x7F) + 1 == boxNumber)
+        byte[] hexIn = new byte[2];
+        ushort cursor;
+        if (GetData(offsets.currentlySetBoxOffset) + 1 == boxNumber)
         {
-            currentBoxOffset = currentBoxDataBegin;
+            currentBoxOffset = offsets.currentBoxDataBegin;
             currentPokemonOffset = currentBoxOffset + boxSizeToFirstPokemonOffset;
         }
         else
         {
-            if (boxNumber < 7)
+            if(generation == 1)
             {
-                currentBoxOffset = boxOneBegin + ((boxNumber - 1) * nextBoxOffset);
+                if (boxNumber < 7)
+                {
+                    currentBoxOffset = BOX_ONE_BEGIN + ((boxNumber - 1) * offsets.nextBoxOffset);
+                }
+                else
+                {
+                    currentBoxOffset = BOX_SEVEN_BEGIN + ((boxNumber - 7) * offsets.nextBoxOffset);
+                }
             }
             else
             {
-                currentBoxOffset = boxSevenBegin + ((boxNumber - 7) * nextBoxOffset);
+                currentBoxOffset = BOX_ONE_BEGIN + ((boxNumber - 1) * offsets.nextBoxOffset);
             }
 
             currentPokemonOffset = currentBoxOffset + boxSizeToFirstPokemonOffset;
@@ -524,42 +502,69 @@ public class GameData
         }
 
 
-        for (ushort i = 1; i <= GetBoxSize(boxNumber); ++i)
+        for (ushort i = 1; i <= boxSize; ++i)
         {
 
 
             name = pokemonData.GetPokemonName(GetData(currentPokemonOffset));
-            level = (ushort)GetData(currentPokemonOffset + 0x03);
-            ad = GetData(currentPokemonOffset + 0x1B);
-            ss = GetData(currentPokemonOffset + 0x1C);
+            level = (ushort)GetData(currentPokemonOffset + offsets.boxLevelOffset);
+            ad = GetData(currentPokemonOffset + offsets.boxIvOffset);
+            ss = GetData(currentPokemonOffset + offsets.boxIvOffset + 1);
             attack = (ushort)(ad >> 4);
             defense = (ushort)(ad & 0x0F);
             speed = (ushort)(ss >> 4);
             special = (ushort)(ss & 0x0F);
-            type = TypeData.GetName(GetData(currentPokemonOffset + 0x05));
-            type2 = TypeData.GetName(GetData(currentPokemonOffset + 0x06));
+            hp = CalculateHpIv(attack, defense, special, speed);
+            if(generation == 1)
+            {
+                type = TypeData.GetName(GetData(currentPokemonOffset + 0x05));
+                type2 = TypeData.GetName(GetData(currentPokemonOffset + 0x06));
+            }
+            else
+            {
+                type = "TBD";
+                type2 = "TBD";
+            }
 
             ivs = new IV
             {
-                HP = CalculateHpIv(attack, defense, special, speed),
+                HP = hp,
                 Attack = attack,
                 Defense = defense,
                 Speed = speed,
-                SpecialAttack = special,
-                SpecialDefense = special
+                Special = special,
+                
             };
 
+            cursor = (ushort)(currentPokemonOffset + offsets.boxEvOffset);
+            ushort[] values = new ushort[5];
+            for (ushort index = 0; index < 5; ++index)
+            {
+                hexIn[0] = GetData(cursor++);
+                hexIn[1] = GetData(cursor++);
+                values[index] = (ushort)((hexIn[0] << 8) | hexIn[1]);
+            }
+
+            evs = new EVs
+            {
+                HP = values[0],
+                Attack = values[1],
+                Defense = values[2],
+                Speed = values[3],
+                Special = values[4]
+            };
+            
             // Get OT name
 
-            otNameOffset = currentBoxOffset + boxOtNameOffset + (otNickNextNameOffset * (i - 1));
+            otNameOffset = currentBoxOffset + offsets.boxOtNameOffset + (otNickNextNameOffset * (i - 1));
             otName = GetEncodedText(otNameOffset, 0x50, 11);
 
-            nickNameOffset = currentBoxOffset + boxNicknameOffset + (otNickNextNameOffset * (i - 1));
+            nickNameOffset = currentBoxOffset + offsets.boxNicknameOffset + (otNickNextNameOffset * (i - 1));
             nickname = GetEncodedText(nickNameOffset, 0x50, 11);
 
-            current = new Pokemon(name, level, ivs, new Stats(), otName, nickname, type, type2, 1);
+            current = new Pokemon(name, level, ivs, new Stats(), evs, otName, nickname, type, type2, 1);
             boxPokemon.Add(current);
-            currentPokemonOffset += nextBoxPokemonOffset;
+            currentPokemonOffset += offsets.nextBoxPokemonOffset;
             //otName.Clear();
 
         }
@@ -581,6 +586,7 @@ public class GameData
         ushort special;
         IV ivs;
         Stats stats;
+        EVs evs;
         int currentPokemonOffset = offsets.partySizeOffset + partySizeToFirstOffset;
         string otName;
         string nickname;
@@ -612,8 +618,7 @@ public class GameData
                     Attack = attack,
                     Defense = defense,
                     Speed = speed,
-                    SpecialAttack = special,
-                    SpecialDefense = special
+                    Special = special
                 };
                 
                 ushort cursor = (ushort)(currentPokemonOffset + 0x22);
@@ -626,6 +631,23 @@ public class GameData
                     SpecialDefense = (ushort)(GetData(cursor++) + GetData(cursor++))
                 };
 
+                cursor = (ushort)(currentPokemonOffset + 0x11);
+                ushort[] values = new ushort[5];
+                byte[] hexIn = new byte[2];
+                for ( ushort index = 0; index < 5; ++index)
+                {
+                    hexIn[0] = GetData(cursor++);
+                    hexIn[1] = GetData(cursor++);
+                    values[index] = (ushort)((hexIn[0] << 8) | hexIn[1]);
+                }
+                evs = new EVs {
+                    HP = values[0],
+                    Attack = values[1],
+                    Defense = values[2],
+                    Speed = values[3],
+                    Special = values[4]
+                };
+
 
 
                 otNameOffset = (offsets.partySizeOffset + partySizeToFirstOtOffset) + (otNickNextNameOffset * (i - 1));
@@ -634,7 +656,7 @@ public class GameData
                 nickOffset = (offsets.partySizeOffset + partySizeToFirstNickOffset) + (otNickNextNameOffset * (i - 1));
                 nickname = GetEncodedText(nickOffset, 0x50, 11);
 
-                current = new Pokemon(name, level, ivs, stats   , otName, nickname, type, type2, 1);
+                current = new Pokemon(name, level, ivs, stats, evs, otName, nickname, type, type2, 1);
                 partyPokemon.Add(current);
                 currentPokemonOffset += offsets.partyNextPokemonOffset; // increment by 44 bytes to get to next party pokemon
             }
@@ -662,6 +684,7 @@ public class GameData
         ushort special2;
         IV ivs;
         Stats stats;
+        EVs evs;
         int currentPokemonOffset = offsets.partySizeOffset + partySizeToFirstOffset;
         string otName;
         string nickname;
@@ -702,8 +725,7 @@ public class GameData
                     Attack = attack,
                     Defense = defense,
                     Speed = speed,
-                    SpecialAttack = special,
-                    SpecialDefense = special
+                    Special = special
                 };
 
                 hp = (ushort)(GetData(currentPokemonOffset + 0x24) + GetData(currentPokemonOffset + 0x25));
@@ -720,6 +742,24 @@ public class GameData
                     SpecialAttack = special,
                     SpecialDefense = special2
                 };
+
+                ushort cursor = (ushort)(currentPokemonOffset + 0x0B);
+                ushort[] values = new ushort[5];
+                byte[] hexIn = new byte[2];
+                for(ushort index = 0; index < 5; ++index)
+                {
+                    hexIn[0] = GetData(cursor++);
+                    hexIn[1] = GetData(cursor++);
+                    values[index] = (ushort)((hexIn[0] << 8) | hexIn[1]);
+                }
+                
+                evs = new EVs {
+                    HP = values[0],
+                    Attack = values[1],
+                    Defense = values[2],
+                    Speed = values[3],
+                    Special= values[4]
+                };
                 
                 
 
@@ -729,7 +769,7 @@ public class GameData
                 nickOffset = firstNickName + (otNickNextNameOffset * (i - 1));
                 nickname = GetEncodedText(nickOffset, 0x50, 11);
 
-                current = new Pokemon(name, level, ivs, stats, otName, nickname, type, type2, 2, heldItem);
+                current = new Pokemon(name, level, ivs, stats, evs, otName, nickname, type, type2, 2, heldItem);
                 partyPokemon.Add(current);
                 currentPokemonOffset += offsets.partyNextPokemonOffset; // increment by 48 bytes to get to next party pokemon
             }
@@ -810,8 +850,8 @@ public class GameData
                 foreach (Pokemon current in pokemon)
                 {
                     writer.WriteLine($"{current.name},{current.level}," +
-                    $"{current.IVs.HP},{current.IVs.Attack},{current.IVs.Defense}," +
-                    $"{current.IVs.SpecialAttack}, {current.IVs.SpecialDefense},{current.IVs.Speed},{current.otName},{current.nickname}");
+                    $"{current.ivs.HP},{current.ivs.Attack},{current.ivs.Defense}," +
+                    $"{current.ivs.Special}, {current.ivs.Special},{current.ivs.Speed},{current.otName},{current.nickname}");
                 }
             }
             else {
@@ -825,9 +865,9 @@ public class GameData
                     {
                         writer.Write($"{itemData.GetName(current.heldItem)},");
                     }
-                    writer.Write($"{current.IVs.HP},{current.IVs.Attack},{current.IVs.Defense},");
-                    writer.Write($"{current.IVs.SpecialAttack},{current.IVs.SpecialDefense},");
-                    writer.WriteLine($"{current.IVs.Speed},{current.otName},{current.nickname}");
+                    writer.Write($"{current.ivs.HP},{current.ivs.Attack},{current.ivs.Defense},");
+                    writer.Write($"{current.ivs.Special},{current.ivs.Special},");
+                    writer.WriteLine($"{current.ivs.Speed},{current.otName},{current.nickname}");
                 }
                 
 
@@ -1052,7 +1092,7 @@ public class GameData
 
         Badges badges = GetBadges();
 
-        sb.AppendLine(badges.getBadgesInfo());
+        sb.AppendLine(badges.getBadgesInfo(generation));
 
         sb.AppendLine("-----------");
         sb.AppendLine("Party Info:");
