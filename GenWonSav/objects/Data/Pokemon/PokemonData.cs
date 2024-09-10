@@ -3,7 +3,30 @@ using System.Diagnostics;
 internal class PokemonData {
     private  readonly Dictionary<String, byte> _stringToHexMap = new Dictionary<String, byte>();
     private  readonly Dictionary<byte, String> _hexToStringMap = new Dictionary<byte, string>();
+    private readonly Dictionary<byte, PokemonType> pokemonTypeData = new Dictionary<byte, PokemonType>();
 
+    [Flags]
+    internal enum PokemonType : uint
+    {
+        None = 0,
+        Normal = 1 << 0,
+        Fire = 1 << 1,
+        Water = 1 << 2,
+        Grass = 1 << 3,
+        Electric = 1 << 4,
+        Ice = 1 << 5,
+        Fighting = 1 << 6,
+        Poison = 1 << 7,
+        Ground = 1 << 8,
+        Flying = 1 << 9,
+        Psychic = 1 << 10,
+        Bug = 1 << 11,
+        Rock = 1 << 12,
+        Ghost = 1 << 13,
+        Dragon = 1 << 14,
+        Dark = 1 << 15,
+        Steel = 1 << 16
+    }
 
     internal PokemonData(int generation) {
 
@@ -224,6 +247,17 @@ internal class PokemonData {
             AddMapping("Blastoise", 9);
             AddMapping("Caterpie", 10);
 
+            pokemonTypeData.Add(1, PokemonType.Grass | PokemonType.Poison);
+            pokemonTypeData.Add(2, PokemonType.Grass | PokemonType.Poison);
+            pokemonTypeData.Add(3, PokemonType.Grass | PokemonType.Poison);
+            pokemonTypeData.Add(4, PokemonType.Fire);
+            pokemonTypeData.Add(5, PokemonType.Fire);
+            pokemonTypeData.Add(6, PokemonType.Fire | PokemonType.Flying);
+            pokemonTypeData.Add(7, PokemonType.Water);
+            pokemonTypeData.Add(8, PokemonType.Water);
+            pokemonTypeData.Add(9, PokemonType.Water);
+            pokemonTypeData.Add(10, PokemonType.Bug);            
+
             AddMapping("Metapod", 11);
             AddMapping("Buterfree", 12);
             AddMapping("Weedle", 13);
@@ -234,6 +268,17 @@ internal class PokemonData {
             AddMapping("Pidgeot", 18);
             AddMapping("Rattata", 19);
             AddMapping("Raticate", 20);
+
+            pokemonTypeData.Add(11, PokemonType.Bug);
+            pokemonTypeData.Add(12, PokemonType.Bug | PokemonType.Flying);
+            pokemonTypeData.Add(13, PokemonType.Bug | PokemonType.Poison);
+            pokemonTypeData.Add(14, PokemonType.Bug | PokemonType.Poison);
+            pokemonTypeData.Add(15, PokemonType.Bug | PokemonType.Poison);
+            pokemonTypeData.Add(16, PokemonType.Normal | PokemonType.Flying);
+            pokemonTypeData.Add(17, PokemonType.Normal | PokemonType.Flying);
+            pokemonTypeData.Add(18, PokemonType.Normal | PokemonType.Flying);
+            pokemonTypeData.Add(19, PokemonType.Normal);
+            pokemonTypeData.Add(20, PokemonType.Normal);
             
             AddMapping("Spearow",21);
             AddMapping("Fearow", 22);
@@ -245,6 +290,17 @@ internal class PokemonData {
             AddMapping("Sandslash", 28);
             AddMapping("Nidoran♀", 29);
             AddMapping("Nidorina", 30);
+
+            pokemonTypeData.Add(21, PokemonType.Normal | PokemonType.Flying);
+            pokemonTypeData.Add(22, PokemonType.Normal | PokemonType.Flying);
+            pokemonTypeData.Add(23, PokemonType.Poison);
+            pokemonTypeData.Add(24, PokemonType.Poison);
+            pokemonTypeData.Add(25, PokemonType.Electric);
+            pokemonTypeData.Add(26, PokemonType.Electric);
+            pokemonTypeData.Add(27, PokemonType.Ground);
+            pokemonTypeData.Add(28, PokemonType.Ground);
+            pokemonTypeData.Add(29, PokemonType.Poison);
+            pokemonTypeData.Add(30, PokemonType.Poison);
             
             AddMapping("Nidoqueen", 31);
             AddMapping("Nidoran♂", 32);
@@ -257,6 +313,17 @@ internal class PokemonData {
             AddMapping("Jigglypuff", 39);
             AddMapping("Wigglytuff", 40);
 
+            pokemonTypeData.Add(31, PokemonType.Poison | PokemonType.Ground);
+            pokemonTypeData.Add(32, PokemonType.Poison);
+            pokemonTypeData.Add(33, PokemonType.Poison);
+            pokemonTypeData.Add(34, PokemonType.Poison | PokemonType.Ground);
+            pokemonTypeData.Add(35, PokemonType.Normal);
+            pokemonTypeData.Add(36, PokemonType.Normal);
+            pokemonTypeData.Add(37, PokemonType.Fire);
+            pokemonTypeData.Add(38, PokemonType.Fire);
+            pokemonTypeData.Add(39, PokemonType.Normal);
+            pokemonTypeData.Add(40, PokemonType.Normal);
+
             AddMapping("Zubat", 41);
             AddMapping("Golbat", 42);
             AddMapping("Oddish", 43);
@@ -267,6 +334,17 @@ internal class PokemonData {
             AddMapping("Venonat", 48);
             AddMapping("Venomoth", 49);
             AddMapping("Diglett", 50);
+
+            pokemonTypeData.Add(41, PokemonType.Poison | PokemonType.Flying);
+            pokemonTypeData.Add(42, PokemonType.Poison | PokemonType.Flying);
+            pokemonTypeData.Add(43, PokemonType.Grass | PokemonType.Poison);
+            pokemonTypeData.Add(44, PokemonType.Grass | PokemonType.Poison);
+            pokemonTypeData.Add(45, PokemonType.Grass | PokemonType.Poison);
+            pokemonTypeData.Add(46, PokemonType.Bug | PokemonType.Grass);
+            pokemonTypeData.Add(47, PokemonType.Bug | PokemonType.Grass);
+            pokemonTypeData.Add(48, PokemonType.Bug | PokemonType.Poison);
+            pokemonTypeData.Add(49, PokemonType.Bug | PokemonType.Poison);
+            pokemonTypeData.Add(50, PokemonType.Ground);
 
             AddMapping("Dugtrio", 51);
             AddMapping("Meowth", 52);
@@ -279,6 +357,17 @@ internal class PokemonData {
             AddMapping("Arcanine", 59);
             AddMapping("Poliwag", 60);
 
+            pokemonTypeData.Add(51, PokemonType.Ground);
+            pokemonTypeData.Add(52, PokemonType.Normal);
+            pokemonTypeData.Add(53, PokemonType.Normal);
+            pokemonTypeData.Add(54, PokemonType.Water);
+            pokemonTypeData.Add(55, PokemonType.Water);
+            pokemonTypeData.Add(56, PokemonType.Fighting);
+            pokemonTypeData.Add(57, PokemonType.Fighting);
+            pokemonTypeData.Add(58, PokemonType.Fire);
+            pokemonTypeData.Add(59, PokemonType.Fire);
+            pokemonTypeData.Add(60, PokemonType.Water);
+
             AddMapping("Poliwhirl", 61);
             AddMapping("Poliwrath", 62);
             AddMapping("Abra", 63);
@@ -290,6 +379,17 @@ internal class PokemonData {
             AddMapping("Bellsprout", 69);
             AddMapping("Weepinbell", 70);
 
+            pokemonTypeData.Add(61, PokemonType.Water);
+            pokemonTypeData.Add(62, PokemonType.Water | PokemonType.Fighting);
+            pokemonTypeData.Add(63, PokemonType.Psychic);
+            pokemonTypeData.Add(64, PokemonType.Psychic);
+            pokemonTypeData.Add(65, PokemonType.Psychic);
+            pokemonTypeData.Add(66, PokemonType.Fighting);
+            pokemonTypeData.Add(67, PokemonType.Fighting);
+            pokemonTypeData.Add(68, PokemonType.Fighting);
+            pokemonTypeData.Add(69, PokemonType.Grass | PokemonType.Poison);
+            pokemonTypeData.Add(70, PokemonType.Grass | PokemonType.Poison);
+
             AddMapping("Victreebel", 71);
             AddMapping("Tentacool", 72);
             AddMapping("Tentacruel", 73);
@@ -300,6 +400,17 @@ internal class PokemonData {
             AddMapping("Rapidash", 78);
             AddMapping("Slowpoke", 79);
             AddMapping("Slowbro", 80);
+
+            pokemonTypeData.Add(71, PokemonType.Grass | PokemonType.Poison);
+            pokemonTypeData.Add(72, PokemonType.Water | PokemonType.Poison);
+            pokemonTypeData.Add(73, PokemonType.Water | PokemonType.Poison);
+            pokemonTypeData.Add(74, PokemonType.Rock | PokemonType.Ground);
+            pokemonTypeData.Add(75, PokemonType.Rock | PokemonType.Ground);
+            pokemonTypeData.Add(76, PokemonType.Rock | PokemonType.Ground);
+            pokemonTypeData.Add(77, PokemonType.Fire);
+            pokemonTypeData.Add(78, PokemonType.Fire);
+            pokemonTypeData.Add(79, PokemonType.Water | PokemonType.Psychic);
+            pokemonTypeData.Add(80, PokemonType.Water | PokemonType.Psychic);          
             
             AddMapping("Magnemite", 81);
             AddMapping("Magneton", 82);
@@ -312,6 +423,17 @@ internal class PokemonData {
             AddMapping("Muk", 89);
             AddMapping("Shelder", 90);
 
+            pokemonTypeData.Add(81, PokemonType.Electric | PokemonType.Steel);
+            pokemonTypeData.Add(82, PokemonType.Electric | PokemonType.Steel);
+            pokemonTypeData.Add(83, PokemonType.Normal | PokemonType.Flying);
+            pokemonTypeData.Add(84, PokemonType.Normal | PokemonType.Flying);
+            pokemonTypeData.Add(85, PokemonType.Normal | PokemonType.Flying);
+            pokemonTypeData.Add(86, PokemonType.Water);
+            pokemonTypeData.Add(87, PokemonType.Water | PokemonType.Ice);
+            pokemonTypeData.Add(88, PokemonType.Poison);
+            pokemonTypeData.Add(89, PokemonType.Poison);
+            pokemonTypeData.Add(90, PokemonType.Water);
+
             AddMapping("Cloyster", 91);
             AddMapping("Gastly", 92);
             AddMapping("Haunter", 93);
@@ -322,6 +444,17 @@ internal class PokemonData {
             AddMapping("Krabby", 98);
             AddMapping("Kingler", 99);
             AddMapping("Voltorb", 100);
+
+            pokemonTypeData.Add(91, PokemonType.Water | PokemonType.Ice);
+            pokemonTypeData.Add(92, PokemonType.Ghost | PokemonType.Poison);
+            pokemonTypeData.Add(93, PokemonType.Ghost | PokemonType.Poison);
+            pokemonTypeData.Add(94, PokemonType.Ghost | PokemonType.Poison);
+            pokemonTypeData.Add(95, PokemonType.Rock | PokemonType.Ground);
+            pokemonTypeData.Add(96, PokemonType.Psychic);
+            pokemonTypeData.Add(97, PokemonType.Psychic);
+            pokemonTypeData.Add(98, PokemonType.Water);
+            pokemonTypeData.Add(99, PokemonType.Water);
+            pokemonTypeData.Add(100, PokemonType.Electric);
 
             AddMapping("Electrode", 101);
             AddMapping("Exeggcute", 102);
@@ -334,6 +467,17 @@ internal class PokemonData {
             AddMapping("Koffing", 109);
             AddMapping("Weezing", 110);
 
+            pokemonTypeData.Add(101, PokemonType.Electric);
+            pokemonTypeData.Add(102, PokemonType.Grass | PokemonType.Psychic);
+            pokemonTypeData.Add(103, PokemonType.Grass | PokemonType.Psychic);
+            pokemonTypeData.Add(104, PokemonType.Ground);
+            pokemonTypeData.Add(105, PokemonType.Ground);
+            pokemonTypeData.Add(106, PokemonType.Fighting);
+            pokemonTypeData.Add(107, PokemonType.Fighting);
+            pokemonTypeData.Add(108, PokemonType.Normal);
+            pokemonTypeData.Add(109, PokemonType.Poison);
+            pokemonTypeData.Add(110, PokemonType.Poison);
+
             AddMapping("Rhyhorn", 111);
             AddMapping("Rhydon", 112);
             AddMapping("Chansey", 113);
@@ -344,6 +488,17 @@ internal class PokemonData {
             AddMapping("Goldeen", 118);
             AddMapping("Seaking", 119);
             AddMapping("Staryu", 120);
+
+            pokemonTypeData.Add(111, PokemonType.Ground | PokemonType.Rock);
+            pokemonTypeData.Add(112, PokemonType.Ground | PokemonType.Rock);
+            pokemonTypeData.Add(113, PokemonType.Normal);
+            pokemonTypeData.Add(114, PokemonType.Grass);
+            pokemonTypeData.Add(115, PokemonType.Normal);
+            pokemonTypeData.Add(116, PokemonType.Water);
+            pokemonTypeData.Add(117, PokemonType.Water);
+            pokemonTypeData.Add(118, PokemonType.Water);
+            pokemonTypeData.Add(119, PokemonType.Water);
+            pokemonTypeData.Add(120, PokemonType.Water);
 
             AddMapping("Starmie", 121);
             AddMapping("Mr. Mime", 122);
@@ -356,6 +511,17 @@ internal class PokemonData {
             AddMapping("Magikarp", 129);
             AddMapping("Gyarados", 130);
 
+            pokemonTypeData.Add(121, PokemonType.Water | PokemonType.Psychic);
+            pokemonTypeData.Add(122, PokemonType.Psychic);
+            pokemonTypeData.Add(123, PokemonType.Bug | PokemonType.Flying);
+            pokemonTypeData.Add(124, PokemonType.Ice | PokemonType.Psychic);
+            pokemonTypeData.Add(125, PokemonType.Electric);
+            pokemonTypeData.Add(126, PokemonType.Fire);
+            pokemonTypeData.Add(127, PokemonType.Bug);
+            pokemonTypeData.Add(128, PokemonType.Normal);
+            pokemonTypeData.Add(129, PokemonType.Water);
+            pokemonTypeData.Add(130, PokemonType.Water | PokemonType.Flying);
+
             AddMapping("Lapras", 131);
             AddMapping("Ditto", 132);
             AddMapping("Eevee", 133);
@@ -366,6 +532,17 @@ internal class PokemonData {
             AddMapping("Omanyte", 138);
             AddMapping("Omastar", 139);
             AddMapping("Kabuto", 140);
+
+            pokemonTypeData.Add(131, PokemonType.Water | PokemonType.Ice);
+            pokemonTypeData.Add(132, PokemonType.Normal);
+            pokemonTypeData.Add(133, PokemonType.Normal);
+            pokemonTypeData.Add(134, PokemonType.Water);
+            pokemonTypeData.Add(135, PokemonType.Electric);
+            pokemonTypeData.Add(136, PokemonType.Electric);
+            pokemonTypeData.Add(137, PokemonType.Normal);
+            pokemonTypeData.Add(138, PokemonType.Rock | PokemonType.Water);
+            pokemonTypeData.Add(139, PokemonType.Rock | PokemonType.Water);
+            pokemonTypeData.Add(140, PokemonType.Rock | PokemonType.Water);
 
             AddMapping("Kabutops", 141);
             AddMapping("Aerodactyl", 142);
@@ -378,6 +555,17 @@ internal class PokemonData {
             AddMapping("Dragonite", 149);
             AddMapping("Mewtwo", 150);
 
+            pokemonTypeData.Add(141, PokemonType.Rock | PokemonType.Water);
+            pokemonTypeData.Add(142, PokemonType.Rock | PokemonType.Flying);
+            pokemonTypeData.Add(143, PokemonType.Normal);
+            pokemonTypeData.Add(144, PokemonType.Ice | PokemonType.Flying);
+            pokemonTypeData.Add(145, PokemonType.Electric | PokemonType.Flying);
+            pokemonTypeData.Add(146, PokemonType.Fire | PokemonType.Flying);
+            pokemonTypeData.Add(147, PokemonType.Dragon);
+            pokemonTypeData.Add(148, PokemonType.Dragon);
+            pokemonTypeData.Add(149, PokemonType.Dragon | PokemonType.Flying);
+            pokemonTypeData.Add(150, PokemonType.Psychic);
+
             AddMapping("Mew", 151);
             AddMapping("Chikorita", 152);
             AddMapping("Bayleef", 153);
@@ -388,6 +576,17 @@ internal class PokemonData {
             AddMapping("Totodile", 158);
             AddMapping("Croconaw", 159);
             AddMapping("Feraligatr", 160);
+
+            pokemonTypeData.Add(151, PokemonType.Psychic);
+            pokemonTypeData.Add(152, PokemonType.Grass);
+            pokemonTypeData.Add(153, PokemonType.Grass);
+            pokemonTypeData.Add(154, PokemonType.Grass);
+            pokemonTypeData.Add(155, PokemonType.Fire);
+            pokemonTypeData.Add(156, PokemonType.Fire);
+            pokemonTypeData.Add(157, PokemonType.Fire);
+            pokemonTypeData.Add(158, PokemonType.Water);
+            pokemonTypeData.Add(159, PokemonType.Water);
+            pokemonTypeData.Add(160, PokemonType.Water);
 
             AddMapping("Sentret", 161);
             AddMapping("Furret", 162);
@@ -400,6 +599,17 @@ internal class PokemonData {
             AddMapping("Crobat", 169);
             AddMapping("Chinchou", 170);
 
+            pokemonTypeData.Add(161, PokemonType.Normal);
+            pokemonTypeData.Add(162, PokemonType.Normal);
+            pokemonTypeData.Add(163, PokemonType.Normal | PokemonType.Flying);
+            pokemonTypeData.Add(164, PokemonType.Normal | PokemonType.Flying);
+            pokemonTypeData.Add(165, PokemonType.Bug | PokemonType.Flying);
+            pokemonTypeData.Add(166, PokemonType.Bug | PokemonType.Flying);
+            pokemonTypeData.Add(167, PokemonType.Bug | PokemonType.Poison);
+            pokemonTypeData.Add(168, PokemonType.Bug | PokemonType.Poison);
+            pokemonTypeData.Add(169, PokemonType.Poison | PokemonType.Flying);
+            pokemonTypeData.Add(170, PokemonType.Water | PokemonType.Electric);
+
             AddMapping("Lanturn", 171);
             AddMapping("Pichu", 172);
             AddMapping("Cleffa", 173);
@@ -410,6 +620,17 @@ internal class PokemonData {
             AddMapping("Xatu", 178);
             AddMapping("Mareep", 179);
             AddMapping("Flaffy", 180);
+
+            pokemonTypeData.Add(171, PokemonType.Water | PokemonType.Electric);
+            pokemonTypeData.Add(172, PokemonType.Electric);
+            pokemonTypeData.Add(173, PokemonType.Normal);
+            pokemonTypeData.Add(174, PokemonType.Normal);
+            pokemonTypeData.Add(175, PokemonType.Normal);
+            pokemonTypeData.Add(176, PokemonType.Normal | PokemonType.Flying);
+            pokemonTypeData.Add(177, PokemonType.Psychic | PokemonType.Flying);
+            pokemonTypeData.Add(178, PokemonType.Psychic | PokemonType.Flying);
+            pokemonTypeData.Add(179, PokemonType.Electric);
+            pokemonTypeData.Add(180, PokemonType.Electric);
             
             AddMapping("Ampharos", 181);
             AddMapping("Bellossom", 182);
@@ -422,6 +643,17 @@ internal class PokemonData {
             AddMapping("Jumpluff", 189);
             AddMapping("Aipom", 190);
 
+            pokemonTypeData.Add(181, PokemonType.Electric);
+            pokemonTypeData.Add(182, PokemonType.Grass);
+            pokemonTypeData.Add(183, PokemonType.Water);
+            pokemonTypeData.Add(184, PokemonType.Water);
+            pokemonTypeData.Add(185, PokemonType.Rock);
+            pokemonTypeData.Add(186, PokemonType.Water);
+            pokemonTypeData.Add(187, PokemonType.Grass | PokemonType.Flying);
+            pokemonTypeData.Add(188, PokemonType.Grass | PokemonType.Flying);
+            pokemonTypeData.Add(189, PokemonType.Grass | PokemonType.Flying);
+            pokemonTypeData.Add(190, PokemonType.Normal);
+
             AddMapping("Sunkern", 191);
             AddMapping("Sunflora", 192);
             AddMapping("Yanma", 193);
@@ -432,6 +664,17 @@ internal class PokemonData {
             AddMapping("Murkrow", 198);
             AddMapping("Slowking", 199);
             AddMapping("Misdreavus", 200);
+
+            pokemonTypeData.Add(191, PokemonType.Grass);
+            pokemonTypeData.Add(192, PokemonType.Grass);
+            pokemonTypeData.Add(193, PokemonType.Bug | PokemonType.Flying);
+            pokemonTypeData.Add(194, PokemonType.Water | PokemonType.Ground);
+            pokemonTypeData.Add(195, PokemonType.Water | PokemonType.Ground);
+            pokemonTypeData.Add(196, PokemonType.Psychic);
+            pokemonTypeData.Add(197, PokemonType.Dark);
+            pokemonTypeData.Add(198, PokemonType.Dark | PokemonType.Flying);
+            pokemonTypeData.Add(199, PokemonType.Water | PokemonType.Psychic);
+            pokemonTypeData.Add(200, PokemonType.Ghost);
             
             AddMapping("Unown", 201);
             AddMapping("Wobbuffet", 202);
@@ -444,6 +687,17 @@ internal class PokemonData {
             AddMapping("Snubbull", 209);
             AddMapping("Granbull", 210);
 
+            pokemonTypeData.Add(201, PokemonType.Psychic);
+            pokemonTypeData.Add(202, PokemonType.Psychic);
+            pokemonTypeData.Add(203, PokemonType.Normal | PokemonType.Psychic);
+            pokemonTypeData.Add(204, PokemonType.Bug);
+            pokemonTypeData.Add(205, PokemonType.Bug | PokemonType.Steel);
+            pokemonTypeData.Add(206, PokemonType.Normal);
+            pokemonTypeData.Add(207, PokemonType.Ground | PokemonType.Flying);
+            pokemonTypeData.Add(208, PokemonType.Steel | PokemonType.Ground);
+            pokemonTypeData.Add(209, PokemonType.Normal);
+            pokemonTypeData.Add(210, PokemonType.Normal);
+
             AddMapping("Qwilfish", 211);
             AddMapping("Scizor", 212);
             AddMapping("Shuckle", 213);
@@ -454,6 +708,17 @@ internal class PokemonData {
             AddMapping("Slugma", 218);
             AddMapping("Magcargo", 219);
             AddMapping("Swinub", 220);
+
+            pokemonTypeData.Add(211, PokemonType.Water | PokemonType.Poison);
+            pokemonTypeData.Add(212, PokemonType.Bug | PokemonType.Steel);
+            pokemonTypeData.Add(213, PokemonType.Bug | PokemonType.Rock);
+            pokemonTypeData.Add(214, PokemonType.Bug | PokemonType.Fighting);
+            pokemonTypeData.Add(215, PokemonType.Dark | PokemonType.Ice);
+            pokemonTypeData.Add(216, PokemonType.Normal);
+            pokemonTypeData.Add(217, PokemonType.Normal);
+            pokemonTypeData.Add(218, PokemonType.Fire);
+            pokemonTypeData.Add(219, PokemonType.Fire | PokemonType.Rock);
+            pokemonTypeData.Add(220, PokemonType.Ice | PokemonType.Ground);
 
             AddMapping("Piloswine", 221);
             AddMapping("Corsola", 222);
@@ -466,6 +731,17 @@ internal class PokemonData {
             AddMapping("Houndoom", 229);
             AddMapping("Kingdra", 230);
 
+            pokemonTypeData.Add(221, PokemonType.Ice | PokemonType.Ground);
+            pokemonTypeData.Add(222, PokemonType.Water | PokemonType.Rock);
+            pokemonTypeData.Add(223, PokemonType.Water);
+            pokemonTypeData.Add(224, PokemonType.Water);
+            pokemonTypeData.Add(225, PokemonType.Ice | PokemonType.Flying);
+            pokemonTypeData.Add(226, PokemonType.Water | PokemonType.Flying);
+            pokemonTypeData.Add(227, PokemonType.Steel | PokemonType.Flying);
+            pokemonTypeData.Add(228, PokemonType.Dark | PokemonType.Fire);
+            pokemonTypeData.Add(229, PokemonType.Dark | PokemonType.Fire);
+            pokemonTypeData.Add(230, PokemonType.Water | PokemonType.Dragon);
+
             AddMapping("Phanpy", 231);
             AddMapping("Donphan", 232);
             AddMapping("Porygon2", 233);
@@ -476,6 +752,17 @@ internal class PokemonData {
             AddMapping("Smoochum", 238);
             AddMapping("Elekid", 239);
             AddMapping("Magby", 240);
+
+            pokemonTypeData.Add(231, PokemonType.Ground);
+            pokemonTypeData.Add(232, PokemonType.Ground);
+            pokemonTypeData.Add(233, PokemonType.Normal);
+            pokemonTypeData.Add(234, PokemonType.Normal);
+            pokemonTypeData.Add(235, PokemonType.Normal);
+            pokemonTypeData.Add(236, PokemonType.Fighting);
+            pokemonTypeData.Add(237, PokemonType.Fighting);
+            pokemonTypeData.Add(238, PokemonType.Ice | PokemonType.Psychic);
+            pokemonTypeData.Add(239, PokemonType.Electric);
+            pokemonTypeData.Add(240, PokemonType.Fire);
 
             AddMapping("Miltank", 241);
             AddMapping("Blissey", 242);
@@ -488,12 +775,28 @@ internal class PokemonData {
             AddMapping("Lugia", 249);
             AddMapping("Ho-Oh", 250);
 
+            pokemonTypeData.Add(241, PokemonType.Normal);
+            pokemonTypeData.Add(242, PokemonType.Normal);
+            pokemonTypeData.Add(243, PokemonType.Electric);
+            pokemonTypeData.Add(244, PokemonType.Fire);
+            pokemonTypeData.Add(245, PokemonType.Water);
+            pokemonTypeData.Add(246, PokemonType.Rock | PokemonType.Ground);
+            pokemonTypeData.Add(247, PokemonType.Rock | PokemonType.Ground);
+            pokemonTypeData.Add(248, PokemonType.Rock | PokemonType.Dark);
+            pokemonTypeData.Add(249, PokemonType.Psychic | PokemonType.Flying);
+            pokemonTypeData.Add(250, PokemonType.Fire | PokemonType.Flying);
 
             AddMapping("Celebi", 251);
             AddMapping("Glitch", 252);
             AddMapping("Glitch Egg", 253);
             AddMapping("Glitch", 254);
             AddMapping("Glitch", 255);
+
+            pokemonTypeData.Add(251, PokemonType.Psychic | PokemonType.Grass);
+            pokemonTypeData.Add(252, PokemonType.Normal);
+            pokemonTypeData.Add(253, PokemonType.Normal);
+            pokemonTypeData.Add(254, PokemonType.Normal);
+            pokemonTypeData.Add(255, PokemonType.Normal);
 
         }
     }
@@ -511,6 +814,37 @@ internal class PokemonData {
         }
         else {
             throw new KeyNotFoundException($"Hex value!! '{(ushort)hexCode}' not found.");
+        }
+    }
+
+    public PokemonType[] GetPokemonType(byte pokemonId)
+    {
+        
+        if (pokemonTypeData.TryGetValue(pokemonId, out PokemonType typeFromData))
+        {
+            PokemonType[] types = new PokemonType[2];
+            int index = 0;
+            foreach(PokemonType type in Enum.GetValues(typeof(PokemonType)))
+            {
+                if (type != PokemonType.None && typeFromData.HasFlag(type))
+                {
+                    types[index++] = type;
+
+                    if(index == 2)
+                    {
+                        break;
+                    }
+                }
+            }
+            if (index == 1)
+            {
+                types[1] = PokemonType.None;
+            }
+            return types;
+        }
+        else
+        {
+            throw new KeyNotFoundException($"Error, type data not found for specified pokemon ID.");
         }
     }
 

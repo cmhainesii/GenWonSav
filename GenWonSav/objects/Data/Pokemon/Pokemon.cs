@@ -45,11 +45,11 @@ internal class Pokemon
 
     internal string otName { get; set; }
     internal string nickname { get; set; }
-    internal string type1 { get; set; }
-    internal string type2 { get; set; }
+    internal string[] types;
 
     internal byte heldItem { get; set; }
     internal ushort generation { get; set; }
+    internal int otId {get; set;}
 
     // public Pokemon(string name, ushort level, IV ivs)
     // {
@@ -62,7 +62,7 @@ internal class Pokemon
 
     // }
 
-    internal Pokemon(string name, ushort level, IV ivs, Stats stats, EVs evs, string otName, string nickname, string type1, string type2, ushort generation, byte heldItem = 0)
+    internal Pokemon(string name, ushort level, IV ivs, Stats stats, EVs evs, string otName, string nickname, string[] types, int otId, ushort generation, byte heldItem = 0)
     {
         this.name = name;
         this.level = level;
@@ -71,9 +71,9 @@ internal class Pokemon
         this.evs = evs;
         this.otName = otName;
         this.nickname = nickname;
-        this.type1 = type1;
-        this.type2 = type2;
+        this.types = (string[])types.Clone();
         this.generation = generation;
+        this.otId = otId;
         if (generation != 1)
         {
             this.heldItem = heldItem;
@@ -98,6 +98,8 @@ internal class Pokemon
                 sb.AppendLine($"{"Held Item:",16}{"None",14}");
             }
         }
+        sb.AppendLine($"{"Type 1:",16}{types[0],14}");
+        sb.AppendLine($"{"Type 2:",16}{types[1],14}");
         sb.AppendLine();
         sb.AppendLine($"{"",16}{"IV Data",7}{"",13}");
         sb.AppendLine($"{"HP:",16}{ivs.HP,14}");
@@ -141,12 +143,8 @@ internal class Pokemon
         }
 
         sb.AppendLine($"{"OT Name:",16}{otName,14}");
+        sb.AppendLine($"{"OT ID:",16}{otId,14:D5}");
         sb.AppendLine($"{"Nickname:",16}{nickname,14}");
-        sb.AppendLine($"{"Type:",16}{type1,14}");
-        if (type1 != type2)
-        {
-            sb.AppendLine($"{"Type2:",16}{type2,14}");
-        }
 
 
         return sb.ToString();

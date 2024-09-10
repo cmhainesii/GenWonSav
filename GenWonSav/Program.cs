@@ -36,12 +36,16 @@
         }
         Console.WriteLine();
 
-        //Console.WriteLine(gameData.partyPokemon.GetInfo());
+        Console.WriteLine(gameData.partyPokemon.GetInfo());
 
-        gameData.WriteCSV("gen2test.csv", gameData.GetGen2PartyPokemon());
+        // gameData.WriteCSV("gen2test.csv", gameData.GetGen2PartyPokemon());
+        // for(ushort index = 1; index <= 12; ++index)
+        // {
+        //     gameData.WriteCSV($"gen2boxtest{index}.csv", gameData.GetBoxPokemon(index));
+        // }
 
 
-        Console.WriteLine(gameData.GetBadges().getBadgesInfo(gameData.generation));
+        //Console.WriteLine(gameData.GetBadges().getBadgesInfo(gameData.generation));
         
 
 

@@ -1,3 +1,5 @@
+using System.Reflection.Metadata;
+
 internal class Offsets
 {
     internal readonly int trainerNameOffset;
@@ -25,6 +27,8 @@ internal class Offsets
     internal readonly ushort boxNicknameOffset;
     internal readonly ushort boxEvOffset;
     internal readonly ushort badgesOffset;
+    internal readonly ushort trainerNameSize = 0x0B;
+    internal readonly int otIdOffset;
 
     // internal const int checksumLocationOffset = 0x3523;
 
@@ -59,6 +63,7 @@ internal class Offsets
             boxNicknameOffset = 0x386;
             boxEvOffset = 0x11;
             badgesOffset = 0x2602;
+            otIdOffset = 0x0C;
         }
         else { 
             // gsc all use the same offset here
@@ -73,6 +78,7 @@ internal class Offsets
             boxOtNameOffset = 0x296;
             boxNicknameOffset = 0x372;
             boxEvOffset = 0x0B;
+            otIdOffset = 0x06;
 
             if(cyrstal) {
                 moneyOffset = 0x23DC;
