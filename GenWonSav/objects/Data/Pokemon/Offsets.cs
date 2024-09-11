@@ -29,11 +29,6 @@ internal class Offsets
     internal readonly ushort badgesOffset;
     internal readonly ushort trainerNameSize = 0x0B;
     internal readonly int otIdOffset;
-
-    // internal const int checksumLocationOffset = 0x3523;
-
-    // internal const int checksumStartOffset = 0x2598;
-    // internal const int checksumEndOffset = 0x3522;
     
     public Offsets(int generation, bool cyrstal) {
         if(generation == 1) 
@@ -80,7 +75,7 @@ internal class Offsets
             boxEvOffset = 0x0B;
             otIdOffset = 0x06;
 
-            if(cyrstal) {
+            if(cyrstal) { // crystal specific offsets
                 moneyOffset = 0x23DC;
                 ownedOffset = 0x2A27;
                 seenOffset = 0x2A47;
@@ -97,7 +92,7 @@ internal class Offsets
                 badgesOffset = 0x23E5;
                 
             }
-            else{
+            else{ // gs specific offsets
                 moneyOffset = 0x23DB;   
                 ownedOffset = 0x2A4C;
                 seenOffset = 0x2A6C;
@@ -113,10 +108,7 @@ internal class Offsets
                 currentBoxDataBegin = 0x2D6C;
                 badgesOffset = 0x23E4;      
             }
-
         }
     }
-
-    //= 0x2598; //gen1
 }
 

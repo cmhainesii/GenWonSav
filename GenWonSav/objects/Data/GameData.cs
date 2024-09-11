@@ -877,7 +877,7 @@ public class GameData
 
                 foreach (Pokemon current in pokemon)
                 {
-                    writer.WriteLine($"{current.name},{current.level}," +
+                    writer.WriteLine($"{current.speciesName},{current.level}," +
                     $"{current.ivs.HP},{current.ivs.Attack},{current.ivs.Defense}," +
                     $"{current.ivs.Special}, {current.ivs.Special},{current.ivs.Speed}," +
                     $"{current.GetIvScore()}, {current.getIvPercentile()/100},{current.otName}," +
@@ -887,7 +887,7 @@ public class GameData
             else {
                 writer.WriteLine("Species,Level,Held Item,HP,Attack,Defense,Special Attack,Special Defense,Speed,IV Score,Percentile,Original Trainer, OT Id,Nickname");
                 foreach (Pokemon current in pokemon) {
-                    writer.Write($"{current.name},{current.level},");
+                    writer.Write($"{current.speciesName},{current.level},");
                     if(current.heldItem == 0) {
                         writer.Write("None,");
                     }

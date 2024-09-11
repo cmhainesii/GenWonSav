@@ -3,7 +3,7 @@
 
     static void Main(string[] args)
     {
-        string fileName = "data3.sav";
+        string fileName = "data5.sav";
 
         if(args.Length > 0) {
             fileName = args[0];
@@ -38,8 +38,15 @@
 
         Console.WriteLine(gameData.partyPokemon.GetInfo());
 
+        gameData.SetGender(1);
+        byte[] money = HexFunctions.IntToMoneyByte(867530);
+        gameData.PatchHexBytes(money, gameData.offsets.moneyOffset);
+        gameData.WriteToFile();
+        Console.WriteLine($"Money ${gameData.GetMoney():N0}");
+        
+
         // gameData.WriteCSV("gen2test.csv", gameData.GetGen2PartyPokemon());
-        // for(ushort index = 1; index <= 12; ++index)
+        // for(ushort index = 1; index <= 12; ++index~)
         // {
         //     gameData.WriteCSV($"gen2boxtest{index}.csv", gameData.GetBoxPokemon(index));
         // }

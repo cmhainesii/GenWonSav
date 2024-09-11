@@ -7,9 +7,6 @@ internal struct IV
     internal ushort Speed;
     internal ushort Special;
     internal ushort HP;
-
-
-
 }
 
 internal struct Stats
@@ -20,7 +17,6 @@ internal struct Stats
     internal ushort SpecialDefense;
     internal ushort Speed;
     internal ushort HP;
-
 }
 
 internal struct EVs
@@ -32,39 +28,26 @@ internal struct EVs
     internal ushort Special;
 }
 
-
-
 internal class Pokemon
 {
-    internal string name { get; set; }
-    internal ushort level { get; set; }
+    internal readonly string speciesName;
+    internal readonly ushort level;
 
     internal readonly IV ivs;
     internal readonly Stats stats;
     internal readonly EVs evs;
 
-    internal string otName { get; set; }
-    internal string nickname { get; set; }
+    internal readonly string otName;
+    internal readonly string nickname;
     internal string[] types;
 
-    internal byte heldItem { get; set; }
-    internal ushort generation { get; set; }
-    internal int otId {get; set;}
-
-    // public Pokemon(string name, ushort level, IV ivs)
-    // {
-    //     this._name = name;
-    //     this._level = level;
-    //     this._ivs = ivs;
-    //     this._otName = "Unknown";
-    //     this._nickname = name;
-
-
-    // }
+    internal readonly byte heldItem;
+    internal readonly ushort generation;
+    internal readonly int otId;
 
     internal Pokemon(string name, ushort level, IV ivs, Stats stats, EVs evs, string otName, string nickname, string[] types, int otId, ushort generation, byte heldItem = 0)
     {
-        this.name = name;
+        this.speciesName = name;
         this.level = level;
         this.ivs = ivs;
         this.stats = stats;
@@ -84,8 +67,10 @@ internal class Pokemon
     {
         StringBuilder sb = new StringBuilder();
 
-        sb.AppendLine($"{"Name:",16}{name,14}");
+        sb.AppendLine($"{"Name:",16}{speciesName,14}");
         sb.AppendLine($"{"Level:",16}{level,14}");
+        
+        // Print held item info if generation 2
         if (generation != 1)
         {
             ItemData itemData = new ItemData(2);
@@ -98,6 +83,7 @@ internal class Pokemon
                 sb.AppendLine($"{"Held Item:",16}{"None",14}");
             }
         }
+
         sb.AppendLine($"{"Type 1:",16}{types[0],14}");
         sb.AppendLine($"{"Type 2:",16}{types[1],14}");
         sb.AppendLine();
@@ -152,7 +138,7 @@ internal class Pokemon
 
     public override string ToString()
     {
-        return name;
+        return speciesName;
     }
 
     public ushort GetIvScore()
