@@ -3,16 +3,16 @@
 
     static void Main(string[] args)
     {
-        string fileName = "data5.sav";
+        string fileName = "data3.sav";
 
         if(args.Length > 0) {
             fileName = args[0];
         }
-        List<GameData> saveCollection = new List<GameData>();
+        
         GameData gameData;  
 
         gameData = new GameData(fileName);
-        saveCollection.Add(gameData);
+        
 
         String trainerName = gameData.GetTrainerName();
         String rivalName = gameData.GetRivalName();
@@ -37,12 +37,6 @@
         Console.WriteLine();
 
         Console.WriteLine(gameData.partyPokemon.GetInfo());
-
-        gameData.SetGender(1);
-        byte[] money = HexFunctions.IntToMoneyByte(867530);
-        gameData.PatchHexBytes(money, gameData.offsets.moneyOffset);
-        gameData.WriteToFile();
-        Console.WriteLine($"Money ${gameData.GetMoney():N0}");
         
 
         // gameData.WriteCSV("gen2test.csv", gameData.GetGen2PartyPokemon());

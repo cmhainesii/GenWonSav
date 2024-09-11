@@ -2,13 +2,13 @@ using System.Reflection.Metadata;
 
 internal class Offsets
 {
-    internal readonly int trainerNameOffset;
-    internal readonly int rivalNameOffset;
-    internal readonly int moneyOffset;
-    internal readonly int ownedSeenSize;
+    internal readonly ushort trainerNameOffset;
+    internal readonly ushort rivalNameOffset;
+    internal readonly ushort moneyOffset;
+    internal readonly ushort ownedSeenSize;
     internal readonly int ownedOffset;
     internal readonly int seenOffset;
-    internal readonly int partySizeOffset;
+    internal readonly ushort partySizeOffset;
     internal readonly int bagSizeOffset;
     internal readonly int ballsPocketOffset;
     internal readonly int keyItemsPocketOffset;
@@ -29,6 +29,12 @@ internal class Offsets
     internal readonly ushort badgesOffset;
     internal readonly ushort trainerNameSize = 0x0B;
     internal readonly int otIdOffset;
+    internal readonly ushort levelOffset;
+    internal readonly ushort attackDefenseOffset;
+    internal readonly ushort speedSpecialOffset;
+    internal readonly ushort genOneType1Offset;
+    internal readonly ushort statsOffset;
+    internal readonly ushort evOffset;
     
     public Offsets(int generation, bool cyrstal) {
         if(generation == 1) 
@@ -59,6 +65,12 @@ internal class Offsets
             boxEvOffset = 0x11;
             badgesOffset = 0x2602;
             otIdOffset = 0x0C;
+            levelOffset = 0x21;
+            attackDefenseOffset = 0x1B;
+            speedSpecialOffset = 0x1C;
+            genOneType1Offset = 0x05;
+            statsOffset = 0x22;
+            evOffset = 0x11;
         }
         else { 
             // gsc all use the same offset here
@@ -74,6 +86,11 @@ internal class Offsets
             boxNicknameOffset = 0x372;
             boxEvOffset = 0x0B;
             otIdOffset = 0x06;
+            levelOffset = 0x1F;
+            attackDefenseOffset = 0x15;
+            speedSpecialOffset = 0x16;
+            statsOffset = 0x24;
+            evOffset = 0x0B;
 
             if(cyrstal) { // crystal specific offsets
                 moneyOffset = 0x23DC;

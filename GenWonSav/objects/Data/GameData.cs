@@ -6,15 +6,15 @@ using System.Xml.XPath;
 public class GameData
 {
     // Constants - Hex Data Offset Locations
-    internal const int BOX_SIZE_TO_FIRST_POKEMON_OFFSET = 0x16;
+    internal const ushort BOX_SIZE_TO_FIRST_POKEMON_OFFSET = 0x16;
     internal const ushort BOX_ONE_BEGIN = 0x4000;    
     internal const ushort BOX_SEVEN_BEGIN = 0x6000;
     
-    internal const int OT_NICK_NEXT_NAME_OFFSET = 0x0B;
-    public const int PARTY_SIZE_TO_FIRST_POKEMON_OFFSET = 0x08;
-    public const int PARTY_SIZE_TO_FIRST_OT_OFFSET = 0x110;
-    public const int partySizeToFirstNickOffset = 0x152;
-    private const int partyOtIdOffset = 0x0C;
+    internal const ushort OT_NICK_NEXT_NAME_OFFSET = 0x0B;
+    public const ushort PARTY_SIZE_TO_FIRST_POKEMON_OFFSET = 0x08;
+    public const ushort PARTY_SIZE_TO_FIRST_OT_OFFSET = 0x110;
+    public const ushort partySizeToFirstNickOffset = 0x152;
+    private const ushort partyOtIdOffset = 0x0C;
     
     private readonly static ushort[] genderAndShadowOffsetCrystal = {0x3E3D, 0x206A};
     
@@ -592,11 +592,12 @@ public class GameData
         return boxPokemon;
     }
 
-    internal List<Pokemon> GetGen1PartyPokemon()
+    internal List<Pokemon> GetPartyPokemon()
     {
         List<Pokemon> partyPokemon = new List<Pokemon>();
         Pokemon current;
-        string name;
+        string speciesName;
+        byte speciesId;
         ushort level;
         byte ad;
         byte ss;
@@ -607,7 +608,7 @@ public class GameData
         IV ivs;
         Stats stats;
         EVs evs;
-        int currentPokemonOffset = offsets.partySizeOffset + PARTY_SIZE_TO_FIRST_POKEMON_OFFSET;
+        ushort currentPokemonOffset = (ushort)(offsets.partySizeOffset + PARTY_SIZE_TO_FIRST_POKEMON_OFFSET);
         string otName;
         string nickname;
         string[] types = new string[2];
@@ -621,16 +622,26 @@ public class GameData
         {
             try
             {
-                name = GetPartyPokemonName(i);
-                level = (ushort)GetData(currentPokemonOffset + 0x21);
-                ad = GetData(currentPokemonOffset + 0x1B);
-                ss = GetData(currentPokemonOffset + 0x1C);
+                speciesId = GetData(currentPokemonOffset);
+                speciesName = GetPartyPokemonName(i);
+                level = (ushort)GetData(currentPokemonOffset + offsets.levelOffset);
+                ad = GetData(currentPokemonOffset + offsets.attackDefenseOffset);
+                ss = GetData(currentPokemonOffset + offsets.speedSpecialOffset);
                 attack = (ushort)(ad >> 4);
                 defense = (ushort)(ad & 0x0F);
                 speed = (ushort)(ss >> 4);
                 special = (ushort)(ss & 0x0F);
-                types[0] = TypeData.GetName(GetData(currentPokemonOffset + 0x05));
-                types[1] = TypeData.GetName(GetData(currentPokemonOffset + 0x06));
+                if(generation == 1)
+                {
+                    types[0] = TypeData.GetName(GetData(currentPokemonOffset + offsets.genOneType1Offset));
+                    types[1] = TypeData.GetName(GetData(currentPokemonOffset + offsets.genOneType1Offset + 1));
+                }
+                else
+                {
+                    PokemonData.PokemonType[] type = pokemonData.GetPokemonType(speciesId);
+                    types[0] = type[0].ToString();
+                    types[1] = type[1].ToString();
+                }
                 ivs = new IV
                 {
                     HP = CalculateHpIv(attack, defense, special, speed),
@@ -640,7 +651,7 @@ public class GameData
                     Special = special
                 };
                 
-                ushort cursor = (ushort)(currentPokemonOffset + 0x22);
+                ushort cursor = (ushort)(currentPokemonOffset + offsets.statsOffset);
                 stats = new Stats {
                     HP = (ushort)(GetData(cursor++) + GetData(cursor++)),
                     Attack = (ushort)(GetData(cursor++) + GetData(cursor++)),
@@ -650,7 +661,7 @@ public class GameData
                     SpecialDefense = (ushort)(GetData(cursor++) + GetData(cursor++))
                 };
 
-                cursor = (ushort)(currentPokemonOffset + 0x11);
+                cursor = (ushort)(currentPokemonOffset + offsets.evOffset);
                 ushort[] values = new ushort[5];
                 byte[] hexIn = new byte[2];
                 for ( ushort index = 0; index < 5; ++index)
@@ -678,128 +689,9 @@ public class GameData
                 nickOffset = (offsets.partySizeOffset + partySizeToFirstNickOffset) + (OT_NICK_NEXT_NAME_OFFSET * (i - 1));
                 nickname = GetEncodedText(nickOffset, 0x50, offsets.trainerNameSize);
 
-                current = new Pokemon(name, level, ivs, stats, evs, otName, nickname, types, id, 1);
+                current = new Pokemon(speciesName, level, ivs, stats, evs, otName, nickname, types, id, 1);
                 partyPokemon.Add(current);
-                currentPokemonOffset += offsets.partyNextPokemonOffset; // increment by 44 bytes to get to next party pokemon
-            }
-            catch (ArgumentException ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-            }
-        }
-
-        return partyPokemon;
-    }
-
-    internal List<Pokemon> GetGen2PartyPokemon()
-    {
-        List<Pokemon> partyPokemon = new List<Pokemon>();
-        Pokemon current;
-        string name;
-        ushort level;
-        byte ad;
-        byte ss;
-        ushort attack;
-        ushort defense;
-        ushort speed;
-        ushort special;
-        ushort special2;
-        IV ivs;
-        Stats stats;
-        EVs evs;
-        int currentPokemonOffset = offsets.partySizeOffset + PARTY_SIZE_TO_FIRST_POKEMON_OFFSET;
-        string otName;
-        string nickname;
-        string[] types = new string[2];
-        int otNameOffset;
-        int nickOffset;
-        ushort hp;
-        ushort partySize = GetPartySize();
-        ushort firstOtName = (ushort)(offsets.partySizeOffset + PARTY_SIZE_TO_FIRST_POKEMON_OFFSET + (48 * partySize));
-        ushort firstNickName = (ushort)(firstOtName + (offsets.trainerNameSize * partySize));
-        byte heldItem;
-
-
-
-
-        for (ushort i = 1; i <= partySize; ++i)
-        {
-            try
-            {
-                name = GetPartyPokemonName(i);
-                level = GetData(currentPokemonOffset + 0x1F);
-                ad = GetData(currentPokemonOffset + 0x15);
-                ss = GetData(currentPokemonOffset + 0x16);
-                attack = (ushort)(ad >> 4);
-                defense = (ushort)(ad & 0x0F);
-                speed = (ushort)(ss >> 4);
-                special = (ushort)(ss & 0x0F);
-
-                heldItem = GetData(currentPokemonOffset + 0x01);
-
-                PokemonData.PokemonType[] typeData = pokemonData.GetPokemonType(GetData(currentPokemonOffset));
-                types[0] = typeData[0].ToString();
-                types[1] = typeData[1].ToString();
-
-
-                
-                ivs = new IV
-                {
-                    HP = CalculateHpIv(attack, defense, special, speed),
-                    Attack = attack,
-                    Defense = defense,
-                    Speed = speed,
-                    Special = special
-                };
-
-                hp = (ushort)(GetData(currentPokemonOffset + 0x24) + GetData(currentPokemonOffset + 0x25));
-                attack = (ushort)(GetData(currentPokemonOffset + 0x26) + GetData(currentPokemonOffset + 0x27));
-                defense = (ushort)(GetData(currentPokemonOffset + 0x28) + GetData(currentPokemonOffset + 0x29));
-                speed = (ushort)(GetData(currentPokemonOffset + 0x2A) + GetData(currentPokemonOffset + 0x2B));
-                special = (ushort)(GetData(currentPokemonOffset + 0x2C) + GetData(currentPokemonOffset + 0x2D));
-                special2 =  (ushort)(GetData(currentPokemonOffset + 0x2E) + GetData(currentPokemonOffset + 0x2F));
-                stats = new Stats {
-                    HP = hp,
-                    Attack = attack,
-                    Defense = defense,
-                    Speed = speed,
-                    SpecialAttack = special,
-                    SpecialDefense = special2
-                };
-
-                ushort cursor = (ushort)(currentPokemonOffset + 0x0B);
-                ushort[] values = new ushort[5];
-                byte[] hexIn = new byte[2];
-                for(ushort index = 0; index < 5; ++index)
-                {
-                    hexIn[0] = GetData(cursor++);
-                    hexIn[1] = GetData(cursor++);
-                    values[index] = (ushort)((hexIn[0] << 8) | hexIn[1]);
-                }
-                
-                evs = new EVs {
-                    HP = values[0],
-                    Attack = values[1],
-                    Defense = values[2],
-                    Speed = values[3],
-                    Special= values[4]
-                };
-
-                cursor = (ushort)(currentPokemonOffset + offsets.otIdOffset);
-                hexIn = GetData(cursor++, cursor++);
-                int id = hexIn[0] << 8 | hexIn[1];
-                
-                
-
-                otNameOffset = firstOtName + (OT_NICK_NEXT_NAME_OFFSET * (i - 1));
-                otName = GetEncodedText(otNameOffset, 0x50, offsets.trainerNameSize);
-
-                nickOffset = firstNickName + (OT_NICK_NEXT_NAME_OFFSET * (i - 1));
-                nickname = GetEncodedText(nickOffset, 0x50, offsets.trainerNameSize);
-
-                current = new Pokemon(name, level, ivs, stats, evs, otName, nickname, types, id, 2, heldItem);
-                partyPokemon.Add(current);
-                currentPokemonOffset += offsets.partyNextPokemonOffset; // increment by 48 bytes to get to next party pokemon
+                currentPokemonOffset += (ushort)offsets.partyNextPokemonOffset; // increment by 44 bytes to get to next party pokemon
             }
             catch (ArgumentException ex)
             {
