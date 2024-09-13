@@ -35,6 +35,8 @@ internal class Offsets
     internal readonly ushort genOneType1Offset;
     internal readonly ushort statsOffset;
     internal readonly ushort evOffset;
+    internal readonly ushort partyOtNameOffset;
+    internal readonly ushort partyNickNameOffset;
     
     public Offsets(int generation, bool cyrstal) {
         if(generation == 1) 
@@ -71,6 +73,8 @@ internal class Offsets
             genOneType1Offset = 0x05;
             statsOffset = 0x22;
             evOffset = 0x11;
+            partyOtNameOffset = 0x110;
+            partyNickNameOffset = 0x152;
         }
         else { 
             // gsc all use the same offset here
@@ -91,7 +95,8 @@ internal class Offsets
             speedSpecialOffset = 0x16;
             statsOffset = 0x24;
             evOffset = 0x0B;
-
+            partyOtNameOffset = 0x128;
+            partyNickNameOffset = 0x16A;
             if(cyrstal) { // crystal specific offsets
                 moneyOffset = 0x23DC;
                 ownedOffset = 0x2A27;

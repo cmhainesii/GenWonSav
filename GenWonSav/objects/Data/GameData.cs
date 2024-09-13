@@ -12,8 +12,6 @@ public class GameData
     
     internal const ushort OT_NICK_NEXT_NAME_OFFSET = 0x0B;
     public const ushort PARTY_SIZE_TO_FIRST_POKEMON_OFFSET = 0x08;
-    public const ushort PARTY_SIZE_TO_FIRST_OT_OFFSET = 0x110;
-    public const ushort partySizeToFirstNickOffset = 0x152;
     private const ushort partyOtIdOffset = 0x0C;
     
     private readonly static ushort[] genderAndShadowOffsetCrystal = {0x3E3D, 0x206A};
@@ -30,7 +28,7 @@ public class GameData
     // Fields
     private byte[] fileData;
     public string fileName { get; set; }
-    public int generation { get; set; }
+    public ushort generation { get; set; }
     internal bool crystal { get; set; }
     public Party partyPokemon;
     public PokemonPC pcPokemon;
@@ -107,7 +105,7 @@ public class GameData
         PatchHexByte(gender, genderAndShadowOffsetCrystal[1]);
     }
 
-    private int determineGeneration()
+    private ushort determineGeneration()
     {
         ReadOnlySpan<byte> save = GetSaveData();
         bool valid = false;
@@ -115,7 +113,7 @@ public class GameData
         Console.WriteLine($"Found valid gen 1 lists (US): {valid}");
         if (valid)
         {
-            this.generation = 1;
+            this.generation = (ushort)1;
             this.crystal = false;
             return this.generation;
         }
@@ -125,7 +123,7 @@ public class GameData
         Console.WriteLine($"Found valid gen 1 lists (J): {valid}");
         if (valid)
         {
-            this.generation = 1;
+            this.generation = (ushort)1;
             this.crystal = false;
             return this.generation;
         }
@@ -134,7 +132,7 @@ public class GameData
         Console.WriteLine($"Found valid gen 2 (GS) lists (US): {valid}");
         if (valid)
         {
-            this.generation = 2;
+            this.generation = (ushort)2;
             this.crystal = false;
             return this.generation;
         }
@@ -143,7 +141,7 @@ public class GameData
         Console.WriteLine($"Found valid gen 2 (C) lists (US): {valid}");
         if (valid)
         {
-            this.generation = 2;
+            this.generation = (ushort)2;
             this.crystal = true;
             return this.generation;
         }
@@ -152,7 +150,7 @@ public class GameData
         Console.WriteLine($"Found valid gen 2 (GS) lists (J): {valid}");
         if (valid)
         {
-            this.generation = 2;
+            this.generation = (ushort)2;
             this.crystal = false;
             return this.generation;
         }
@@ -160,12 +158,12 @@ public class GameData
         Console.WriteLine($"Found valid gen 2 (C) lists (J): {valid}");
         if (valid)
         {
-            this.generation = 2;
+            this.generation = (ushort)2;
             this.crystal = true;
             return this.generation;
         }
 
-        return -1;
+        return 0;
     }
 
     private bool ValidateList(ReadOnlySpan<byte> data, int offset, int maxEntries)
@@ -683,13 +681,13 @@ public class GameData
                 int id = hexIn[0] << 8 | hexIn[1];
 
 
-                otNameOffset = (offsets.partySizeOffset + PARTY_SIZE_TO_FIRST_OT_OFFSET) + (OT_NICK_NEXT_NAME_OFFSET * (i - 1));
+                otNameOffset = (offsets.partySizeOffset + offsets.partyOtNameOffset) + (OT_NICK_NEXT_NAME_OFFSET * (i - 1));
                 otName = GetEncodedText(otNameOffset, 0x50, offsets.trainerNameSize);
 
-                nickOffset = (offsets.partySizeOffset + partySizeToFirstNickOffset) + (OT_NICK_NEXT_NAME_OFFSET * (i - 1));
+                nickOffset = (offsets.partySizeOffset + offsets.partyNickNameOffset) + (OT_NICK_NEXT_NAME_OFFSET * (i - 1));
                 nickname = GetEncodedText(nickOffset, 0x50, offsets.trainerNameSize);
 
-                current = new Pokemon(speciesName, level, ivs, stats, evs, otName, nickname, types, id, 1);
+                current = new Pokemon(speciesName, level, ivs, stats, evs, otName, nickname, types, id, generation);
                 partyPokemon.Add(current);
                 currentPokemonOffset += (ushort)offsets.partyNextPokemonOffset; // increment by 44 bytes to get to next party pokemon
             }
@@ -746,10 +744,10 @@ public class GameData
         // Null terminator after party size (0xFF)
         PatchHexByte(0xFF, offsets.partySizeOffset + slotNumber + 1);
 
-        insertOffset = (offsets.partySizeOffset + PARTY_SIZE_TO_FIRST_OT_OFFSET) + (OT_NICK_NEXT_NAME_OFFSET * (slotNumber - 1));
+        insertOffset = (offsets.partySizeOffset + offsets.partyOtNameOffset) + (OT_NICK_NEXT_NAME_OFFSET * (slotNumber - 1));
         PatchHexBytes(data.otName, insertOffset);
 
-        insertOffset = (offsets.partySizeOffset + partySizeToFirstNickOffset) + (OT_NICK_NEXT_NAME_OFFSET * (slotNumber - 1));
+        insertOffset = (offsets.partySizeOffset + offsets.partyNickNameOffset) + (OT_NICK_NEXT_NAME_OFFSET * (slotNumber - 1));
         PatchHexBytes(data.nickname, insertOffset);
 
         insertOffset = (offsets.partySizeOffset + PARTY_SIZE_TO_FIRST_POKEMON_OFFSET) + (offsets.partyNextPokemonOffset * (slotNumber - 1)) + partyOtIdOffset;
@@ -1046,6 +1044,16 @@ public class GameData
     public Party GetParty()
     {
         return partyPokemon;
+    }
+
+    public ushort GetGender()
+    {
+        if(crystal && GetData(genderAndShadowOffsetCrystal[0]) == 1)
+        {
+            return 1;
+        }
+        
+        return 0;
     }
 
     private void UpdateChecksum(int checksum)

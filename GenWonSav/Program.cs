@@ -3,16 +3,15 @@
 
     static void Main(string[] args)
     {
-        string fileName = "data3.sav";
+        string fileName = "data4.sav";
+        Console.ForegroundColor = ConsoleColor.White;
 
         if(args.Length > 0) {
             fileName = args[0];
         }
-        
         GameData gameData;  
 
         gameData = new GameData(fileName);
-        
 
         String trainerName = gameData.GetTrainerName();
         String rivalName = gameData.GetRivalName();
@@ -37,7 +36,20 @@
         Console.WriteLine();
 
         Console.WriteLine(gameData.partyPokemon.GetInfo());
-        
+
+        gameData.SetGender(1);
+        // byte[] money = HexFunctions.IntToMoneyByte(867530);
+        // gameData.PatchHexBytes(money, gameData.offsets.moneyOffset);
+        // gameData.WriteToFile();
+        // Console.WriteLine($"Money ${gameData.GetMoney():N0}");
+
+        Console.Write("Gender: ");
+        ConsoleColor male = ConsoleColor.Blue;
+        ConsoleColor female = ConsoleColor.Magenta;
+        Console.ForegroundColor = gameData.GetGender() == 1 ? female : male;
+        string gender = gameData.GetGender() == 0 ? "Male" : "Female";
+        Console.WriteLine(gender);
+
 
         // gameData.WriteCSV("gen2test.csv", gameData.GetGen2PartyPokemon());
         // for(ushort index = 1; index <= 12; ++index~)
