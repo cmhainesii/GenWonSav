@@ -1,5 +1,5 @@
 # GenWonSav
-Command Line Pokemon Red/Blue Save File Editor
+Command Line Pokemon Red/Blue/Gold/Silver/Crystal Save File Editor
 
 This is a work in progress.
 
